@@ -5,13 +5,13 @@
 # The def keyword must be followed by the function name and a list of formal parameters
 # The first line of the function is called the function header or the function definition
 # Statements below the function header that are a part of the function are called the function body and are indented
-# They start at the line following the function body
+# They start at the line following the function header
 # The function body may start with a STRING LITERAL that is called the function's DOCSTRING (short for documentation string)
 # It is good to get into the habit of writing docstrings as there are many tools which produce documentation automatically using docstrings
 # It is also a great way to interactively browse through your code.
 
 # What happens when a function is executed?
-# When a function is executed, a new symbol table is created (In Python, a symbol table is a maping of names to objects)
+# When a function is executed, a new symbol table is created (In Python, a symbol table is a mapping of names to objects)
 # This symbol table, often called the local symbol table, stores all the variable assignments of the function
 # So, when a variable is referenced in a function, the Python interpreter first looks in the local symbol table of the function
 # Then the local symbol tables of  enclosing functions (Remember that functions can be nested)
@@ -53,7 +53,7 @@ def addr(a,b):
 print(addr(5,7)) # Will print 12
 
 # Methods are functions that belong to an object
-# They are referred to as obj.methodname
+# They are referred to as obj.methodname()
 # We will come across these more when we study classes
 # A good example of a method is the list.append() method which belongs to list objects
 
