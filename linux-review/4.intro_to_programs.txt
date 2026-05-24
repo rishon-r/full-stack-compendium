@@ -1,0 +1,140 @@
+- Compiled vs. Interpreted
+    - A program is just a set of instructions that a computer can execute.
+    - An executable is just a file that contains a program.
+    - There are chiefly two types of programs: Compiled and Interpreted
+- Compiled Programs
+    - A compiled program is a program that has been converted from human
+    readable source code to machine code.
+    - Machine code is a set of instructions that a computer can execute directly
+    - The CPU is hardware that has been decided to execute machine code.
+    - Programming languages such as Go, C and Rust produce compiled
+    programs.
+- Interpreted programs
+    - An interpreted program is a program that is executed by another program.
+    - The program executing the program is known as an interpreter.
+    - The interpreter reads the source code of the program being interpreted and
+    executes it.
+    - Programming languages such as Python, Javascript and Ruby produce
+    interpreted programs which means you need to have the interpreter installed
+    to run such programs.
+- Another example of interpreted programs are the shell scripts denoted by the
+.sh extension. These are interpreted by the shell program
+- Command 20: which command
+    - Tells us where a program file is located
+    - which program_file
+    - It is often used alongside commands, e.g which ls
+- Shebang
+    - We know you can run any executable in the shell by typing its file path in the
+    shell
+    - This works for files that are compiled executables directly
+    - For scripts that need to be interpreted by different programs however this
+    works kind of differently
+    - Here, the computer needs to be told what file should be used to
+    interpret the program.
+    - A shebang is a special line at the top of the script which tells us which file to
+    use to execute the script
+    - The format/syntax of a shebang is as follows:
+    - #! Interpreter [optional-args]
+    - Example: If your script is a python script and you want it to be
+    executed with the python 3 interpreter, your shebang would look like
+    this:
+        - #!/usr/bin/python3
+        - This tells the system to use the Python 3 interpreter located at
+        /usr/bin/python3 to run the script
+- Bourne Shell
+    - sh: The Bourne shell was the original UNIX shell
+    - It is POSIX compliant
+    - POSIX (Portable Operating System Interface) is a set of standards defined by IEEE that specifies
+     how a unix-like OS should behave — things like how the filesystem works, what commands must be available,
+    how processes work, and how the shell should behave. The goal was portability: if you write a program to the POSIX standard,
+    it should work on any POSIX compliant system without modification.
+    - It is very basic and doesn’t have many quality-of-life features
+    - i.e writing very complex scripts may get very verbose.
+- Bash shell
+    - bash: It is the most common UNIX shell
+    - Builds on top of the Bourne shell but has many additional features
+    - Bash stands for Bourne again shell
+- Zshell
+    - zsh: This is the most common shell on MacOs
+    - It is similar to bash shell in the fact that it does what sh can do but has many
+    additional features
+- Both bash and zsh are “sh compatible” shells which means that they can both run .sh
+scripts.
+- For general purposes, bash and zsh are not too different from each other.
+- Their differences become more prevalent only when indulging in heavier scripting.
+- Shell configuration
+    - Both bash and zsh have configuration files that run automatically each time
+    the shell is started
+    - These files are used to set up your shell environment.
+    - They can be used to set up aliases, functions and environment variables.
+    - These files are located in the home directory and are hidden by default.
+    - The ls command has an -a flag (stands for all) which will display them
+    however. ( ls -a ~)
+    - If you are using bash, then .bashrc is the file you probably want to edit for
+    this.
+    - If you are using zsh, then .zshrc is probably the file you want to create or edit
+    for this
+- Note: When . is used before a filename it means that file is a hidden file.
+- Environment variables
+    - Earlier we saw how we could create local variables within our shell.
+    - Local varibales are created by simply writing a variable name and = a value e.g name=Joe
+    - These local variables can only be used within the current shell session
+    - No child processes or programs you run from that shell can see them
+    - Also when the current shell session is terminated, all local variables are erased
+    
+    - Environment variables are those variables that are available to all programs
+    which run in our shell.
+- Command 21: env command- tells us all the environment variables within our
+shell.
+- It is unix convention that environment variables be named in all capital letters.
+- Command 22: We use the export command to set an environment variable i
+our shell
+    - E.g: export NAME=”nathan”
+    - We can now use the variable in our shell same way as before, using
+    the $ sign to precede it
+- The interesting part about environment variables is that programs and scripts
+you run in your shell can also use that variable.
+- PATH
+    - There are environment variables that are sort of just built into the shell.
+    - This means that there are often different programs and parts of your system
+    that know these environment variables exist and use them.
+    - The PATH variable is one such very important environment variable.
+    - Why is PATH so important?
+        - Without the PATH variable one would have to remember the
+        filesystem path for every executable.
+        - i.e instead of just running ls, you’d have to run /bin/ls (or
+        whatever the location of ls is on your system)
+        - This is just not very convenient.
+    - What is the PATH variable?
+        - The PATH variable is a list of directories that your shell will look into
+        when you try to run a command
+        - If you type ls, the shell will look into every directory inside the PATh to
+        look for an executable called ls.
+        - If it finds one, it will run it. Otherwise it will run an error like “command
+        not found”
+        - So whenever you want to run an executable, ensure that the directory
+        the executable is in is in the PATH.
+    - What is in the PATH variable?
+        - Upon running echo $PATH one will see a giant list of directories, all
+        separated by colons (:)
+        - Each of these directories is a place the shell will look for an
+        executable in.
+    - Change your PATH
+        - There exists a common problem that you will run into when you install
+        a new program on your machine and run it from your terminal.
+        - An error of the form: my-new-program: command not found is thrown.
+        - This is mostly due to the fact that the directory your new program is
+        installed in does not belong to the PATH.
+        - Oftentimes when you try and install a program using the CLI, it will
+        print out some text to the screen that tells you where the new program
+        is installed.
+        - It is important that you read this message and not simply leave it be.
+        - How do you add such a directory to the PATH?
+            - Firstly, you need to add the absolute path of the directory not
+            the relative path
+            - You can get this absolute path by typing pwd once inside that
+            directory
+            - To add a new directory to the PATH variable without rewriting
+            all of its previous content, do as follows:
+                - export PATH=”$PATH:new_absolute_path_here”
+                - It is clear that we do this by referencing the PATH

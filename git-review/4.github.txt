@@ -1,0 +1,41 @@
+WHAT IS GITHUB?
+- Github is a service that allows us to save our git repositories online
+- This is useful as it serves as a backup if the code on our computer gets deleted
+- It has a GUI and helps us see the history of our code changes more accurately
+
+WHAT IS A REPOSITORY?
+- A repository refers to a folder containing code such that any changes made to the code are tracked by git
+- We create a repository by typing the git init command
+- A git repository on your computer is referred to as a LOCAL REPOSITORY
+- A git repository saved online on a platform such as GitHub is called a REMOTE REPOSITORY
+- The word "local" in coding circles is usually used to refer to something pertaining to your personal device
+- You can refer to all remote repositories you have created by going to Your repositories in GitHub
+- Remember that remote repositories can be either public or private and set this accordingly
+- The idea of a local repository vs a remote repository is very important to keep in mind
+
+ADDING CODE FROM A LOCAL REPOSITORY TO A REMOTE REPOSITORY
+
+Step 1: Link a local repository to a remote repository you want and give this link a name
+- Command: git remote add <remote_name> <url>
+- Convention states to name this remote repository origin
+- To list all remote repositories a local repository is linked to, type: git remote
+- git remote -v will do the same as line above but with more detail (the v stands for verbose)
+
+Step 2: Configuring your GitHub username so that you can have access to your GitHub repository
+- Command: git config --global credential.username "<username>"
+- Note that this username should be your GitHUb username
+
+Step 3: Finally, upload a branch of your git version history to your remote repository
+- Command: git push <remote_name> <branch>
+- Here, we can see that git push allows us to only push one branch of commits at a time
+- Note, git push only pushes commited changes to the remote repository. Uncommited changes will not be pushed
+- Note: do not ammend to a commit that has already been pushed to a remote repo, this is viewed as a bad habit
+
+A nice shortcut: git push <remote_name> <branch> --set-upstream
+- This sets up a shortcut for this branch and remote repository
+- Next time you are on the main branch and you run git push, it will automatically push the main branch to origin
+
+HOW TO REMOVE A LINK TO A REMOTE REPOSITORY FROM A LOCAL REPOSITORY
+
+- Command: git remote remove <remote_name>
+- For example, the following command will remove the link to the remote repository named origin: git remote remove origin 

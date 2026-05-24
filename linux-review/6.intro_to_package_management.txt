@@ -1,0 +1,55 @@
+6. PACKAGES
+- Package Managers
+    - A package manager is a software tool that helps you install other software
+    - Its primary functions include:
+        - Downloading software from official sources
+        - Installing software
+        - Updating software
+        - Removing software
+        - Managing dependencies
+    - As a developer you will often use package managers to get access to the
+    software you need
+    - Examples of some package managers:
+        - APT (ubuntu)
+        - Mac - a lot of people use homebrew, there is no official package manager for
+        mac.
+    - How does a package manager work when installing a new software?
+        - Checks to see if software is installed
+        - If it’s not installed will download the package from a repository
+        - Will install package on your computer
+        - It will install any dependencies that the package needs to run
+        - It should also hopefully add your package to the PATH if it has to be there.
+    - Good package managers keep track of what packages you have installed and their
+    versions
+
+    Homebrew:
+
+    - Homebrew is macOS's unofficial package manager — think of it as an App Store for developer tools, but run from the terminal
+    - Homebrew is a free and open-source software package management system that simplifies the installation of software on Apple’s macOS operating system. It is known as the missing package manager for macOS.
+    - Check if homebrew is installed on your mac by typing this command into a terminal instance: brew --version
+    - It will return the version of homebrew installed on your computer if you have it, otherwise it will print an error message
+    - Run which brew to see exactly where the Homebrew executable is located on your system.
+    - Install packages by typing: brew install <package name> 
+    - E.g brew install python
+    - To print help information, type: brew help
+    
+    - Homebrew itself is, under the hood, just a Git repository.
+    - When you installed Homebrew, it cloned a repository from GitHub onto your machine. 
+    - That repository contains formulae — the recipe files that tell Homebrew how to download, compile, and install every package it knows about
+    - brew update does not update any of your installed packages. It updates Homebrew's knowledge — its list of available packages and their latest versions
+    - brew upgrade actually installs newer versions of your packages
+    i.e
+    brew update      # get the latest catalogue
+    brew upgrade     # now upgrade packages using that catalogue
+
+    - Running brew upgrade without brew update first means you're upgrading based on a potentially stale catalogue — you might miss recent versions.
+    - When Homebrew upgrades a package, it keeps the old version sitting on your disk as a safety net.
+    - brew cleanup deletes those old versions and clears the download cache, freeing up disk space.
+
+    - Running brew doctor helps us find any issues with homebrew on our machine
+    - Typical order of running commands:
+
+    brew update
+    brew upgrade
+    brew cleanup
+    brew doctor

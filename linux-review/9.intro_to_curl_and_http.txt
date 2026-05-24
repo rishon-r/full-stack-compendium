@@ -1,0 +1,287 @@
+CURL
+
+Some networking basics: 
+
+
+1. CLIENT-SERVER ARCHITECTURE:
+
+A network can be loosely defined as an interconnection of multiple computers. A network architecture refers to a particular 
+way of connecting these computers together.
+
+The client-server architecture is a type of network architecture. In the client-server architecture, a server is a central
+computer to which multiple computers are connected. These multiple computers that are connected to the server are 
+referred to as clients. It is important to note that these clients are not connected to each other. Any interaction
+between the clients goes through the server first. The server acts as a sort of intermediary between the clients.
+
+2. IP ADDRESSES AND PORTS:
+
+Every computer in a network has something known as an IP Address which helps us identify where the computer is located. This helps 
+us send or receive data from it. All computers that exist as a part of a network have an associated IP address in that network.
+
+In the client-server architecture, all clients and the server have an IP address. 
+
+Besides having an IP address, a computer can have many ports. Each port is a number that identifies
+a specific service or application that is listening for network connections on that computer.
+
+An analogy to help better understand this:
+
+Think of a network as a neighbourhood of different apartment buildings that are all connected together by roads.
+These apartment buildings are analagous to computers in a network and each apartment building has a unique address in this neighbourhood
+which serves as a parallel for IP adresses in a network. Every apartment building has multiple apartments in it, each with a unique door
+number. These individual apartments are analogous to ports in a computer.
+
+3. LOCAL IP ADRESSES vs PUBLIC IP ADDRESSES 
+
+A local IP address refers to a private IP address that computers hold within a local network. It is available and visible only within that network.
+
+A public IP address on the other hand is one that is visible and accessible throughout the internet. This is provided by the Internet Service Provider (ISP).
+All devices in the same local network use a single Public IP address while communicating via the internet.
+
+Local IP addresses keep internal devices organized and hidden while Public IP addresses let your local network talk to the internet. 
+
+
+4. SOCKETS
+
+A socket is essentially just a communication endpoint. Think of it like a plug: Applications plug into it in order to send and receive network messages.
+It is an abstraction that wraps lower level details such as the IP address, Port number and Protocol used into an easy to use interface for programs.
+
+There are mainly two types of sockets used and they can be distinguished based on the protocol used by the socket. These two protocols are:
+
+(i) TCP: Transmission Control Protocol
+
+- It is a connection based protocol (one needs to first establish a connection before sending data via TCP)
+- It is reliable (guarantees delivery i.e no packet loss)
+- It detects packet loss
+- Data transmission via TCP is sequential
+- Transmits data in the form of a byte stream
+- Terminates when we do not want a connection to exist anymore
+- Used when there can be no packet loss
+- Denoted by SOCK_STREAM in Python
+- Use case example: Email, File Transfer
+
+
+(ii) UDP: User Datagram Protocol
+
+- Unreliable (no guaranteed delivery as there might be packer loss)
+- Not a connection based protocol 
+- Fire and forget type protocol
+- Data is transported one datagram at a time
+- Faster than TCP
+- Not sequential
+- Used when some packet loss is acceptable
+- Denoted by SOCK_DGRAM in Python
+- Use case example: Voice calls, Video Calls
+
+
+Intro to HTTP: 
+
+INTRO TO HTTP
+
+- HTTP stands for Hyper Text Transfer Protocol
+- It is the protocol of the web (said to be the foundation of data exchange on the web)
+- Used for communication between web servers and clients
+- There are two kinds of HTTP messages: 
+    -HTTP Requests (from client to server)
+    -HTTP Responses (from server to client)
+- It works on a request-response cycle called the HTTP request-response cycle
+
+
+HTTP is STATELESS
+- Which means that every request is independent and can be treated as a single transaction
+- Every request is independent and contains all information required to understand and process it
+- The server does not remember previous requests
+- The server also does not remember who you are in between requests
+- If the state is needed, it must be handled via cookies, tokens or sessions
+
+HTTP is TEXT-BASED
+- HTTP messages are human readable
+- Messages are in plain text (ASCII) formatted in a specific structure
+- The human readability of HTTP messages makes debugging and learning easier
+
+HTTPS 
+- stands for Hyper Text Transfer Protocol Secure
+- Here, the data sent is encrypted
+- This is done by SSL (Secure Sockets Layer) or TLS (Transport Layer Security)
+- Anytime users sent sensitive information, it is advised to use HTTPS
+- This can be done by installing an SSL certificate on your web host
+
+HTTP METHODS
+- HTTP Methods appear only in HTTP requests and not in responses
+- HTTP Methods define the action that the client wants to perform on a resource
+- Server never sends a method back, it sends a status code alongside a response body and optional headers
+- Some main HTTP Methods are:
+    1. GET
+    - The GET Method is used to retrieve data from the server
+    - E.g loading a standard HTML page, receiving JSON data
+    2. POST
+    - POST method is used to submit data to the server
+    - E.g when you submit a form or creating a new blog post
+    - Typically this data is stored in a database
+    3. PUT
+    - PUT method is used to update data already on server
+    - E.g editing a blog post would use this
+    4. DELETE
+    - DELETE method is used to delete data from server
+    - E.g deleting a blog post
+    5. PATCH
+    - Updates part of an existing resource (partial update)
+    - E.g updating just the title of a blog post
+
+
+- HTTP Message structure
+    HTTP Request structure:
+    <method> <path> <version>
+    <headers>
+
+    <body> 
+
+    - Here, path refers to the route of the site being called
+    - version refers to the HTTP version. Version mentioned determines the structure of the remaining part of the request
+    - method is the HTTP method
+    Example:
+    GET /index.html HTTP/1.1
+    Host: example.com
+    User-Agent: curl/7.68.0
+    Accept: */*
+
+    HTTP Response structure:
+	<version> <status_code> <status_text>
+    <headers>
+
+    <body>
+
+    Example: 
+    HTTP/1.1 200 OK
+    Content-Type: text/html
+    Content-Length: 1256
+
+    <html> ... </html>
+	
+
+- Each HTTP request and response has headers and a body associated with it
+- The body represents the actual data that is being sent and the headers represent metadata about the body
+- A HTTP request or response usually has multiple header fields
+
+- HTTP Header Fields
+- HTTP Headers are key: value pairs that give metadata about the request or response
+- Metadata basically means data about data
+- HTTP headers give data about the actual data in the body of the HTTP message
+- They usually provide information about the request, response or how the client should behave
+- HTTP headers consist of a name and a value in the form of a Key: Value Pair in the form Name: Value
+- HTTP Header Fields are classified into General Headers, Request Headers, Response Headers and Entity Headers
+
+        1. General Headers: Metadata about the message not the contents. Used in Both Requests and Responses.
+        Examples:
+            - Connection: Keep alive or close
+            - Date: Date/Time of message
+            - Cache-control: How caching should be handled
+
+        2. Request Headers: Information about the client or resource requested
+            - Cookies- If a cookie was previously assigned by a server to client and needs to be passed back it is done here
+            - Accept-xxx- Multiple Accept fields like Accept-encoding exist
+            - Content-Type- Type of data being sent
+            - Content-length- self explanatory
+            - Authorization- As HTTP is stateless, one might need to send some kind of token in order to validate
+            - User-Agent- Usually a long string that has to do with the software the user is using
+            - Referrer- Holds info regarding referring site if one were to click on a link
+
+        3. Response Headers: Information about the server or response
+            - Server-  kind of server essentially, usually hidden  E.g Apache, Nginx
+            - Content-Type- type of content essentially (E.g JSON, HTML)
+            - Content-Length- self explanatory, given in octets
+            - Set-Cookie- Allows server to give a piece of data called a cookie to client
+            - Date
+
+        4. Entity Headers: Describe the content in the body of the request/response
+
+- STATUS CODES - Very important to understand and memorize
+    - A status code is a 3 digit number sent by the server in a HTTP response
+    - It tells the client what happened to the request
+    - First digit groups codes into categories
+    - 1xx: INFORMATIONAL (Request received/processing)
+    - 2xx: SUCCESS (Successfully received, understood and accepted)
+    - 3xx: REDIRECT (Further action must be taken/ Redirect)
+    - 4xx: CLIENT ERROR (Request does not have what it needs)
+    - 5xx: SERVER ERROR (Server failed to fulfill an apparent valid request)
+    - Examples: 200- OK, 201- OK Created, 301- Moved to new URL, 304- Not modified (Cache Version), 400- Bad Request, 401- Unauthorized, 404- Not found, 500- Internal Server Error
+
+- HTTP/2
+    - HTTP version 1.1 has been the standard for a long time
+    - Now it has been revised and there is a new version of HTTP, HTTP/2
+    - Lot of under the hood changes 
+    - Responds with more data
+    - It is fast, efficient and secure.
+    - It reduces latency by enabling full request and response multiplexing
+
+- HTTP/3
+    - HTTP version 3.0 is also in existence
+    - One of the main changes is the use of the QUIC protocol instead of the TCP protocol
+    - The QUIC protocol can be thought of as the UDP protocol with all the reliability that the TCP protocol has
+    - It also does not involve the long handshake process that TCP involves
+    - This was done primarily to improve performance
+
+- Some other important concepts:
+
+DNS (Domain Name System)
+
+The internet uses IP addresses to identify computers, but humans use readable names like google.com. DNS is the system that translates between the two.
+When you type a URL or run a curl command, your computer first sends a query to a DNS server asking "what IP address does this name belong to?" and then connects to that IP.
+Think of it as the internet's phone book — names in, IP addresses out.
+
+
+URL anatomy — curl commands are built around URLs, so understanding each component is essential
+
+Scheme (https://) — the protocol being used
+Host (api.example.com) — the domain name or IP address of the server, resolved via DNS
+Port (:8000) — the specific port on that server; often omitted because HTTP defaults to 80 and HTTPS to 443
+Path (/users/42) — identifies the specific resource on the server
+Query string (?sort=asc) — optional key-value pairs appended after a ? used to pass extra parameters; multiple pairs are separated by & e.g. ?sort=asc&limit=10
+
+
+localhost and 127.0.0.1
+
+localhost is a special hostname that always refers to your own machine — it never goes out over the network
+It resolves to the IP address 127.0.0.1, which is reserved for this purpose on every computer
+When testing a FastAPI app locally, you will almost always be hitting http://localhost:8000, so understanding that this simply means "a server running on my own machine at port 8000" is important
+
+
+Now, finally, we get to CURL
+
+- curl stands for Client URL
+- Curl is a command-line tool that allows us to do HTTP requests from shell. It also covers many other protocols, like FTP.
+- For now, we will focus on the HTTP aspect of it
+- The most comman syntax for a curl command is as follows: curl <url_address>
+  - E.g curl https://www.ipsum.com
+  - When used in this basic manner, curl invokes a HTTP GET request on the given url_address
+  - The output for the above command will be the whole HTTP response's body (of the HTTP response which the site returns on GET)
+  - This output is written to stdout
+  - A common practice is to pipe the output into a less command so that you can read it in a more elegant way
+  - However one may also stream redirect it into another file so that the output is saved in a place
+  - We can also use the -o flag to do the same:
+  - The following 2 are equivalent:
+    (i) curl -o index.html https://www.blah.com
+    (ii) curl https://www.blah.com > index.html
+
+- Another major use of curl is to test already existing urls (done during API testing to check if they work properly)
+  - One typically wants to send JSON data to a url and this can be done as follows:
+
+    (i) curl --data "name=John&surname=Doe" https://www.blah.com
+      or
+    (ii) curl --data '{"name":"John","surname":"Doe"}' https://www.blah.com
+
+  - Using the --data flag is the same as using the -d flag and both will make the method change to POST
+  - One can also use the -X flag in order to particularly specify which method to use
+    - E.g curl -X "POST" -d "name=John&surname=Doe" https://www.blah.com
+
+  - One may also specify headers as shown in the following example using the -H flag: 
+    curl -X POST http://127.0.0.1:8000/items \
+     -H "Content-Type: application/json" \
+     -d '{"name": "Durable Backpack", "price": 49.99}'
+  
+  - When you make a standard request with curl, it only outputs the Response Body (usually the raw JSON or HTML data that the server returns)
+    - However, every HTTP response from a server actually consists of two distinct parts: the Headers (the metadata) and the Body (the actual content)
+    - The -i flag (short for --include) tells curl to print both the HTTP response headers and the response body together in your terminal
+    - The -i flag is useful when you want to know the status code, especially after a get request
+    - Including the -i flag as follows: curl -i https://www.blah.com
+      - will allows also the status code and headers to be printed alongside the raw body that the HTTP response returns
+    

@@ -1,0 +1,83 @@
+INTRODUCTION TO SHELLS AND TERMINALS
+
+- echo “Hello World” prints hello world
+- A command line interface (CLI) allows you to interact with your machine through text
+as opposed to the GUIs laymen are usually familiar with.
+- As a software developer you will usually run your code using a CLI while opposed to
+how some beginner developer use the GUI to run their programs (i.e the run button)
+- Therefore, it is essential to master the command line in order to become a better
+software engineer/ developer.
+- What is a CLI?
+    - As a software developer you will hear the words ‘Terminal’, ‘Shell’, ‘CLI’, or
+    ‘Command Line’ thrown around but often they all refer to the same thing: A
+    program that allows you to interact with applications in a text based way.
+    - A CLI stands for Command Line Interface
+- What is a GUI?
+    - GUI stands for graphical user interface.
+    - This is what is used by users with a non-technical background.
+    - A GUI has a low barrier for entry (easier to use) but is slower as it
+    depends on mouse clicks.
+    - With a CLI you can move significantly faster (as fast as you can type)
+- Command 1: whoami
+    - Prints the username of user currently using the terminal
+- What is a terminal?
+    - As we previously discussed, the words ‘Terminal’ and ‘Shell’ are often thrown
+    around interchangeably.
+    - Technically though, a Terminal can be defined as a physical device that you
+    can type commands into (essentially a keyboard and a screen)
+    - These days however we use programs known as Terminal Emulators
+    because physical devices like those in the old days aren’t in use commonly.
+    - Briefly put, a terminal is a program that can accept text based commands and
+    render text on the screen.
+- What is a shell?
+    - We have now seen that a terminal is essentially just a program that allows
+    users to input text based commands and renders the output of those
+    commands on the screen.
+    - A shell is the program that interprets these commands and executes them.
+    - Shells in actuality do many more tasks but this is their main function.
+- What is REPL?
+    - Shells are often referred to as REPL.
+    - REPL is an acronym for Read, Eval (short for evaluate), Print, Loop.
+    - This is just an elaborate means of saying that shells:
+        - Read the commands typed by user
+        - Evaluate those commands, usually by executing other programs on
+        the computer.
+        - Print the results of those commands.
+        - Give you a new prompt to type another command and repeat.
+
+- Examples of Shells are Z shell and Bash.
+- They are essentially the same.
+- Both Bash and Zshell are shells but they are also powerful programming languages.
+- They have variables, functions, loops and more.
+- This being said, it is against traditional practices to write large programs using shells.
+- Shells are traditionally used for running programs and writing small programs known
+as scripts
+- Creating variables
+    - Similar to python
+    - Example
+        - name= “Nathan”
+- Using a variable
+    - However, when using a variable, there is a small additional thing we have to
+    do.
+    - We have to prefix it with a dollar sign.
+    - Example:
+        - echo $name
+        - The above command will print the value stored in the name variable
+- A more detailed example of using variables:
+    - name=”Nathan”
+    - fruit= “kiwi”
+    - meal= “breakfast”
+    - echo “$name ate a $fruit for $meal”
+    - The above line will print on the screen: Nathan ate a kiwi for breakfast
+
+- Command 2: history
+    - The history command prints all commands previously typed into the shell
+    - Hitting the up arrow allows us to visit commands in history one by one without
+    having to type the history command every time (i.e navigate history).
+    - The order this happens in is from most recently typed command ->
+    most initially typed command.
+    - While hitting the up arrow to navigat through history, we can also use the down arrow to cycle back down
+
+- Command 3: clear
+    - Clears the screen of previously typed commands.
+    - Don’t worry it doesn’t remove these commands from the history

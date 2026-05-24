@@ -1,0 +1,104 @@
+3. PERMISSIONS AND USERS
+
+- Operating systems like linux support multiple users
+- Each user has their own home directory, their own files and their own permissions.
+- It is typical that on your home computer, you will be the only user,
+- However, it was more common for multiple people to use the same computer or
+access the same computer over a network back in the olden days
+- Command 17: The sudo command
+    - The sudo command is shorthand for ‘superuser do’
+    - It allows any user to run a command as a super user
+    - You can prefix the command you want to run with sudo in order to access this
+    ability
+    - HOWEVER IT IS IMPORTANT THAT YOU BE WARY WHEN USING THE
+    SUDO COMMAND: The sudo command grants superuser privileges and
+    unrestricted access to inner workings of the system that are important to the
+    functioning of your computer. Mistakes here may result in permanent damage
+    to your device
+- Recall the whoami command that tells you what user you are
+- Permissions:
+    - In a linux/unix based operating system: Every file has a set of permissions
+    - These permissions can be better understood by asking two questions:
+        - (i) Who has permissions?
+        - (ii) What permissions do they have?
+    - Permissions essentially control who can do what to which files and which
+    directories
+    - The permissions of an individual file or directory are represented by a 10
+    character string: drwxrwxrwx
+    - Understanding the drwxrwxrwx string better:
+        - The first character tells us whether we are looking at a file or directory
+        - If the first character is: ‘-’ it represents a file, ‘d’ it represents a
+        directory
+        - The next 9 characters are broken up into 3 sets of rwx and represent
+        permissions of the owner, group and others respectively, in that order
+        - Each group of 3 characters represents the permissions for reading,
+        writing and executing respectively, in that order
+        - So for example:
+            - rwx: all permissions.
+            - r-x: read and execute permissions but not write permissions
+            - rw-: read and write permissions but not execute permissions
+        - The first three characters represent what the owner can do, the next
+        represent what the group can do, the final 3 represent what all the
+        others can do
+- What is a group?
+    - Unix-like operating systems allow a particular file or directory to be
+    available to a group of users but don’t worry you won’t have to really
+    pay mind to groups of users unless you are a system administrator
+- Owner permissions will apply to you if you are the owner of the file
+- Others just refer to other users that may access the file
+- When you list files with ls -l where the l stands for long format, the ls command lists all
+files alongside their permissions
+- Command 18: chmod command
+    - The chmod command stands for change mode
+    - It is a command that allows you to change permissions of a particular file
+    - chmod allows you to change permissions of any file you own
+    - When you don’t own that file however, that is when sudo is required
+    - Syntax:
+        - chmod -R u=rwx,g=r–,o=r– directoryname
+        - Here the -R means recursively, u represents user, g represents group
+        and o represents others
+        - directoryname represents the path of the directory that you want to
+        change the permissions for
+    - More examples:
+    chmod u+x script.sh          # give owner execute permission
+    chmod o-w file.txt           # remove write from others
+    chmod a+r file.txt           # give everyone read permission
+    chmod u=rwx,g=r,o=r file.txt # set exactly: owner=all, group=read, others=read
+    - Numeric Mode: The previously mentioned way of changing permissions is called symbolic mode
+    - What you will encounter in the real world more often however is what is called NUMERIC or OCTAL mode
+    - In numeric mode, each permission is given a number, r - 4, w- 2, x - 1, no permission is represented by 0
+    - You add them together for each group (owner, group, others) to get a single digit, then combine the three digits:
+    - Examples: rwx is represented by 111 or 7, r-x by 5 or 101, --- by 0 or 000, r-- by 4 or 100 and so on
+    - The 1s mean a particular permission is granted and 0 means no
+    - E.g chmod 755 file.txt changes permissions of file.txt to rwxr-xr-x
+- Executables
+    - Executable files refer to files where data stored inside them is in the form of a
+    program you can run on your computer
+    - Files with a .sh extension are called shell scripts. They are essentially just text
+    files that store shell commands
+    - You can run a file in your shell by typing its file path
+    - If the file with your program is in the current directory, note that you have to
+    prefix it’s path with a ./ in order to run it
+    - Here, the . is an alias for the current directory
+- Root user
+    - The root user is a superuser.
+    - They have access to everything on the system and can change anything
+    - Using the sudo command allows you to run commands as the superuser
+    - Doing this might be dangerous though as we have previously discussed
+    - Example: running rm with the r or f flag on the root directory will delete all files
+    required for your system to function appropriately
+    - The r flag stands for recursive whereas the f flag stands for force
+    - Computers prevent you from doing this unless you use the sudo
+    command.
+    - However, NEVER DO THIS!! It will make your computer obsolete.
+    - Use sudo if and only if you understand all the implications and ramifications of
+    the command you are using to run with it
+- Command 19: chown
+    - The same way chmod changes permissions, chown changes owners
+    - chmod allows you to change permissions of any file you own
+    - When you don’t own that file however, that is when sudo is required
+    - The chown command allows you to change ownership of a file or directory
+    - It requires root privileges, that’s where the sudo command comes in handy
+    - Syntax (to change owner of a directory contacts to user3):
+        - sudo chown -R user3 contacts
+        - Note that -R means recursive here

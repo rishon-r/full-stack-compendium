@@ -1,0 +1,187 @@
+2. FILE SYSTEMS
+- All the data in our systems are stored in files and directories
+- One can imagine directories as a folder storing files
+- In fact they are called folders in certain operating systems such as windows.
+- All these files and directories are then organized into a tree-like structure known as a
+file system
+- Directories
+    - Directories are containers that store files and other directories
+    - Directories inside files are often referred to as sub-directories
+- Files
+    - Files are essentially just streams of bytes
+    - These bytes can be used to represent anything from images to videos to text
+    and so on
+- The file system in linux starts with a single directory called the ROOT DIRECTORY
+which is represented by /
+- The root directory contains files and directories, which further contain files and
+directories and so it goes.
+- Command 4: pwd
+    - pwd stands for print working directory and does exactly what it says. It prints
+    the directory you are currently in.
+    - The output is in the form of a file path.
+- What is a file path?
+    - Filepath is a string that dictates the location of a file or directory in your
+    computer.
+    - It will look something like this /Users/nathan
+    - The first forward slash represents the root directory.
+    - The name users represents a directory inside the root directory and nathan is
+    a directory inside Users.
+- Note: You can use the tab key to autocomplete the name of a directory
+- Command 5: cd
+    - Stands for change directory
+    - Used to switch directory
+    - Syntax: cd name_of_directory_you_want_to_change_to
+    - Note: cd .. changes directory to the parent directory
+    - cd ~ switches to the home directory
+- Absolute vs. Relative file paths
+    - Relative file paths are those that only work when you are in a particular
+    directory.
+    - In essence, they take the current directory into account.
+    - Absolute file paths are those that start with the root directory.
+    - Absolute file paths start with a slash
+    - These will work from anywhere
+    - It is easier to use relative paths when you know which directory you’re in and
+    where your file lives.
+    - Absolute paths are useful when you want to interact with files whose precise
+    location you do not know.
+- Command 6: cat
+    - The cat command is used to list the contents of a file or multiple files
+    - Syntax: cat name_of_file
+- Commands 6 and 7:
+    - head
+        - Prints first n lines of file. (if not specified will print the first 10 lines)
+        - Syntax: head -n number_of_lines filename
+    - tail
+        - Prints last n lines of file. (if not specified will print the first 10 lines)
+        - Syntax: tail -n number_of_lines filename
+    - It is useful to have the head and tail commands to use in place of cat as files often
+    have a tendency of getting very large (i.e. having a large number of lines)
+- Commands 8 and 9: more and less
+    - The more and less commands allow us to view the contents of a file, one
+    page at a time
+    - less command does everything the more command does but has more
+    features.
+    - As such, it is advised to use the less command more often.
+    - The only reason to use the more command instead of the less command is
+    when a system doesn’t have the less command.
+    - Syntax: less filename
+    - Use the enter key to scroll down the less command
+    - Use q to exit the less program and return to the command prompt
+    - You can pass the -N flag alongside the less command in order to display line
+    numbers as well.
+- Command 10: touch command
+    - The touch command updates the access and modification time of a particular
+    file.
+    - If the file doesn’t exist, touch creates an empty file with the given filename. As
+    such, it is often used to create files.
+    - Syntax: touch filename
+    - You can also use the touch command to create multiple files at the same
+    time.
+    - Syntax: touch filename1 filename2
+- Command 11: mkdir
+    - Used to create a new directory inside the current directory
+    - Stands for make directory
+    - Syntax: mkdir directory_name
+- Command 12: mv command
+    - mv stands for move
+    - The mv command is used to move a directory or a file from one location to
+    another.
+    - You can use the mv command to rename a file or move it to a new location
+    altogether
+    - Examples:
+    - Renaming a file: mv filename new_filename
+    - Moving a file from current directory to another nested directory: mv
+      filename nested_directory/filename
+    - Moving a file from current directory to parent directory: mv filename ../filename
+    - Moving a file to another directory without renaming it (you can not name the file): mv filename somedirectoryname
+- Command 13: rm command
+    - The rm command stands for remove.
+    - It is used to remove a particular file or empty directory
+    - Example (removing a file):
+    - rm filename
+    - When you want to remove a directory and all of its contents recursively, you
+    can use the -r flag alongside the rm command
+    - Example: rm -r directoryname
+    - This is simply a fancy way of saying repeat it again on all of its subdirectories
+    and their content
+- Command 14: cp command
+    - cp command stands for copy.
+    - It copies a file from one location from one location to another.
+    - How does it defer from the mv command?
+    - The mv command removes the contents from the old filepath whereas
+    the cp command leaves it be and creates a secondary copy at the
+    destination
+    - Example: cp source_file destination/
+    - You can also use the -R flag to copy a directory and all of its contents
+    recursively. (it is a capital R with cp while it is a small r with rm)
+    - Example: cp -R source_directory new_directory
+- The home directory
+    - A user’s home directory is where their personal files are stored.
+    - It is also where they will start when they are logged in to the system.
+    - It is always recommended to store any development work you do in your
+    home directory.
+    - Home directory is where you want to spend most of your time as the other
+    directories such as /bin, /etc, /var may hold information important to the
+    system’s functioning
+    - The symbol ~ is an alias for your home directory.
+    - You can type cd ~ to go back to the home directory from any directory in the
+    system.
+- Command 15: grep (stands for global regular expressions print)
+    - The grep command allows you to search for text in files. It has a ton of
+    capability and you can always learn to use more of its power.
+    - Basic usage:
+        - The most basic use case for grep is searching for a string in the file. (Note here that the string really is just a regular expression)
+        - For example if we wanted to search for the word ‘hello’ in words.txt,
+        we would do:
+            - grep “hello” words.txt
+            - The following command will print out every line in words.txt
+            that has the word “hello” in it.
+    - Remember that this search is case sensitive
+    - You can also use the grep command to search for a string in a directory
+    recursively.
+    - Syntax: grep -r “somestring” directoryname
+        - this will search for the patternn mentioned in all files in a directory, return those lines as well as the corresponding files that they belong to
+        - Using the -c flag after the command will display instead the number of lines that pattern appears in each file
+    - Another common use case of grep is with piping
+    - In this way, grep looks for the requested pattern in the input that has been piped into it
+    -  E.g cat sample.txt | grep apple
+         - this will search for the line with apple in the contents of sample.txt
+    - You can also use grep to search for a particular pattern in multiple files by specifying the filename as a pattern
+        - E.g grep div *.html. This will print every line that has div in all files with .html extension
+        - It will also print which file each line belongs to
+        - Using the -c flag after the command will display instead the number of lines that pattern appears in each file
+    - FLAGS
+        - grep is generally case sensitive. Using the -i flag after the command makes the case not sensitive (i stands for insensitive)
+        - The -v flag returns all lines that do not match
+        - The -x flag matches the whole line with the pattern i.e will return lines that consist only of the pattern
+        - The -c flag returns the number of lines given pattern occurs in requested file
+        - The -w flag matches the pattern requested only if it appears as its own word in aline and returns those lines from the file
+        - The -B flag stands for before which will print out a number of lines before occurence of pattern. We specify the number after a space after the flag.
+        -  -A and -C flags work similarly and stand for after and context (prints lines before and after)
+    - A note on regular expressions
+        - Regular expressions act as a useful tool to represent a set of strings
+        - You can search for multiple patterns with a regular expression using some special characters
+        - ^ means only match from start of the line. E.g "^apple" will only match lines that start with apple. Lines with apple not as the starting word will be ignored
+        - Similarly, $ only matches with end of line. e.g "apple$" will only match line that end with apple
+        - The . matches any single character. Just means that there needs to be one character exactly. To match a literal dot, use an escape sequence \ before the dot
+        - * means 0 or more of the preceding character
+
+- Note: That the period symbol . is an alias for the current working directory
+
+- Command 16: find
+    - The find command is a powerful tool for finding files and directories by their
+    name, not their contents.
+    - Syntax for finding a file within a given directory dir1:
+        - find dir1 -name a.txt
+        - Above command will find file a.txt in dir1
+    - One of the powerful aspects of the find command also lies in its ability to
+    pattern search for files.
+    - The * character is called a wildcard and will match anything.
+    - When you want to search for all files with a particular word in their name this
+    becomes very useful:
+    - Examples
+        - Finding all text files within a directory dir1:
+            - find dir1 -name “*.txt”
+        - Finding all files whose filename starts with the letter b in a directory
+        dir1.
+            - find dir1 -name “b*”

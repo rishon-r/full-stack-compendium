@@ -1,0 +1,55 @@
+7. PROCESS MANAGEMENT
+
+- What is a linux process?
+    - A process is an instance of a program, running in the memory (memory refers to RAM or the main memory in this case)
+    - Each process has a unique process ID PID
+    - A process is also allocated its own resources such as its own memory
+    - These are scheduled and run by the operating system
+    - Every time you launch an application in linux a process is started.
+
+- Use the ps command to see all processes that are currently running.
+    - Typing ps on its own lists only the processes associated with your current terminal session, not all processes on the system
+    - ps aux lists all running processes in extreme detail. It lists every process on the entire system, from all users
+    - ps -ef lists all the same running processes as ps aux except in a different format (e flag means every, f flag means full format)
+    - ps -u <username> is another important command. It filters processes to show only those processes belonging to the user with that corresponding username (u flag means username)
+    - It is also often useful to pipe the results of a ps command into a grep command which looks for a particular keyword. 
+    - This is useful when trying to find PID of a process that we know the name of but don't know the PID of
+    - An easier way to do this is with the pgrep command
+
+- The pgrep command is essentially a combination of ps and grep
+    - pgrep is a cleaner way to find process IDs by name, without having to do the classic ps aux | grep combination
+    - It just prints the PID, nothing else. That simplicity is the point
+    - Syntax: pgrep <process_name>
+    - E.g pgrep firefox
+    - Above example will return the PID of the firefox process
+
+- The kill command is used to terminate a process (when using kill command, note that it sends a kill signal to a process)
+    - kill PID sends a SIGTERM signal to the process (SIGTERM is the default kill signal), requesting it to stop gracefully (i.e it is given time to finish what it is currently doing and clean up before exiting)
+    - A process being stopped gracefully means that it is allowed time to clean up after itself rather than being stopped abruptly.
+    - kill -9 PID sends SIGKILL, which force kills the process and cannot be ignored
+    - ctrl + z sends the SIGTSTP signal, pressing ctrl + z for the second time after sends the SIGCONT signal
+    - ctrl + c sends the SIGINT signal
+    - kill -l will list all possible kill signals (there are many but only few are important)
+    - kill -l will also list numbers alongside the kill signals. These are the numbers to be passed as flags to kill in order to send the corresponding kill signal
+ 
+- Recall again the top command. 
+    - The top command lists all processes running similar to ps aux but orders them again according to CPU usage
+
+- Background and Foreground Processes
+    - A foreground process refers to a process that is directly attached to your current terminal session and has control over it
+    - This implies that your terminal is locked until the foreground process terminates and that you can't type another command into the current terminal session
+    - If you type ctrl + z while a foreground process is running, it will put the process to sleep. 
+    - After this, you have access to your terminal again
+    - Note that the process here has not been killed and will still remain in the process table
+    - jobs command shows you what processes are currently suspended or backgrounded in your session
+    - jobs only knows about processes that were started from your current shell session and sent to the background or suspended. It's the shell's own internal list.
+    - Typing: bg <jobid> will run the process with the given pid in the Background
+    - A process running in the background cannot be put to sleep with ctrl + z or terminated with ctrl + C
+    - It will simply keep running
+    - In order to be able to halt the process this way again, we need to bring it to the foreground
+    - We do this similarly, by typing: fg <jobid>
+    - To run a process in the background initially itself, type & after the command to start the process. E.g COMMAND &
+
+- Process states
+    - A process can be in one of many states: ready (to be scheduled by CPU), running, waiting (waiting for an event or resources), stopped, zombie (stopped but entry still in the process table)
+

@@ -1,0 +1,61 @@
+WHAT IS GIT?  
+
+- Git is a version control software
+- allows us to maintain a version history of our code so that we can go back to previous versions in case of problems or faults with our current version
+- Type git in terminal to check if git is installed, if it is installed it should return a lot of text explaining what git is and some common commands
+- Type git --version in the terminal to check which version of git you have installed in your terminal
+- git is mainly used in the command line (terminal in MacOS, PowerShell in Windows)
+
+CREATING A version
+
+COMMAND 1: git init
+- To initialize git within a repository/directory, cd into that directory from command line and type the command: git init
+- init here stands for initialize and by doing the above 'git is initialized inside the repository'
+- This command creates a hidden `.git/` folder in the directory, which stores Git’s version control data.
+
+COMMAND 2: git status
+- Typing git status in command line inside a folder will show us all the files/folders where changes have been made since the last version
+- It shows three things: untracked files, changes staged for commit, and changes not yet staged.
+
+COMMAND 3: git add
+- After using git status to see what files have been changed, we use git add to choose which changes we want to save in our next version
+- We type: git add <filename/foldername> where the <filename/foldername> tag represents the files whose changes we want preserved in the next version
+- Type git status after this and those files that you have added would have changed from red to green in colour in the text sent back
+- When you git add a file, technically it moves files to something known as a staging area
+- The staging area is where you prepare files for commit before committing them to the repository history
+
+WHAT IS A COMMIT?
+- As we have seen before, git is a version control software
+- In git, every version is called a commit
+- We use the git commit command to create a new version
+
+COMMAND 3: git commit -m "Type messsage here"
+- This enforces the changes that have been made and moves change file from the staging area to main repository that you are working with
+- You always want to add a message to the commit so that we know what changes have been made in this particular version
+
+NOTE: if you forgot to add something to the previous commit and don't want to create a new commit for the feature, you can add a change to the previous commit using --amend
+- Syntax for ammend: git commit -m "message" --amend 
+- This will update previous commit instead of creating new one
+
+
+COMMAND 4: git log
+- This prints out the entire commit history of all previous versions along with the messages stated when they were pushed
+- NOTE: press q to exit the git log
+
+git log --all Show all commits (not just current branch)
+git log --all --graph Show branching visually in the command line
+
+GIT ALIASES
+- Git aliases are shortcuts you can define for longer Git commands to save time and reduce typing.
+- Syntax to create an alias: git config --global alias.shortcut <command> 
+- Example for saying git s = git status: git config --global alias.s "status"
+
+WHAT IS A .gitignore?
+
+- A .gitignore tells git which files/folders it SHOULD NOT track 
+- It is used for sensitive files that you do not want to be tracked by git
+- It is a file by itself with the filenames of files to be ignored listed in it
+- It does not exist automatically but instead you have to create it manually in the root of your project by typing: touch .gitignore
+
+HOW TO REMOVE GIT
+- To remove git from our project completely type: rm -rf .git

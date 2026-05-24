@@ -1,0 +1,105 @@
+
+WHAT IS SSH?
+
+- SSH stands for secure shell
+- SSH is a networking protocol that allows the user to access a remote computer (generally a server) over the internet
+- The key problem with accessing a remote computer over the internet is security
+- This is because the data from your computer will usually pass through many networks which may have either:
+(I) malicious programs
+or
+(II) users listening to your data i.e packet sniffing
+- The key benefit of SSH is that it provides a secure, safe and reliable connection to the remote server via encryption
+- Potential hackers can still see that a connection has been established between two computers via SSH but they will not be able to view the encrypted data
+- Before SSH, users accessed rmeote servers via TELNET or RLOGIN, both of which do not encrypt data and transmit data in plain text
+- Hence, these obviously had a nuber of safety concerns
+
+- You will generally use the command line in order to connect with a remote server 
+- Keep in mind that you need to have SSH server software installed on the server and have SSH client software installed on the system you are connecting with
+
+- What do you need to make the ssh connection?
+- You need two things: (I) The server host (typically an IP address or domain name of some sort) (II) The username (user on the remote server you wish to connect to) with which you want to connect to the server as
+- You will typically type a command like this into the terminal in order to connect to the remote server: ssh username@serverhost
+- Then it will typically prompt you for a password
+- Upon connecting, you should be able to run cli commands on the remote server
+
+- Another way you can connect to a remote server via ssh: USING KEYS
+- This is very important and is often used when you want to SSH into a server in a script or CI/CD workflow
+- To understand how to use keys, you must first understand how SSH uses keys
+- SSH uses a PUBLIC KEY  and PRIVATE KEY pair
+- The PUBLIC KEY is given to the server and is available to everybody while the private key remains on your system and is never shared with anyone
+- Essentially how it works is this: all data sent via the SSH server is ENCRYPTED with the public key and can only be decrypted with the PRIVATE KEY
+
+USING SSH KEYS
+
+- We have previously seen how to link a local repository to a remote repository using the https url
+- While this is a valid method of working, it is often not convention in the industry due to security reasons
+- So, instead of a https url, we use ssh keys
+- An ssh key is basically just a file on our computer and any time we push to our GitHub repository we also want to pass this ssh key
+- All this key essentially does is give ous access to our GitHub repository without requiring a GitHub password
+- To see if your MacBook has existing ssh keys, type: ls -al ~/.ssh in terminal
+- Note that there is a hidden .ssh folder in your home directory
+- By default, the filenames of the public keys are one of the three: id_rsa.pub, id_ecdsa.pub, id_ed25519.pub
+- The keys come in a public key & private key pair. The private key is of the same name as the public key without the .pub extension
+
+CREATING SSH KEYS
+
+- Sometimes, the .ssh hidden holder does not exist and there is no public and private key pair
+- In such a case we have to generate the public and private key pair
+- This can be done by first typing the following command in the terminal: ssh-keygen -t ed25519 -C "your_email@example.com" 
+- The email mentioned above should be the email associated with your GitHub account
+- This creates a new SSH key, using the provided email as a label.
+- When you're prompted to "Enter a file in which to save the key", you can press Enter to accept the default file location.
+- It will also ask for an optional passphrase which you can choose to set up or not
+- After this, you will have to add your ssh key to your ssh agent
+- Start the ssh-agent in the background: eval "$(ssh-agent -s)"
+- If you're using macOS Sierra 10.12.2 or later, you will need to modify your ~/.ssh/config file to automatically load keys into the ssh-agent and store passphrases in your keychain.
+- If file doesn't exist, create it with the command: touch ~/.ssh/config
+- Then, open it with the command: open ~/.ssh/config
+- After opening, copy and paste the following text in the file: 
+  Host github.com
+  AddKeysToAgent yes
+  UseKeychain yes
+  IdentityFile ~/.ssh/id_ed25519
+- If your SSH key file has a different name or path than the example code, modify the filename or path to match your current setup.
+- Now, add your SSH private key to the ssh-agent and store your passphrase in the keychain. 
+- If you created your key with a different name, or if you are adding an existing key that has a different name, replace id_ed25519 in the command with the name of your private key file.
+- Command for above: ssh-add --apple-use-keychain ~/.ssh/id_ed25519
+- Finally, Add the SSH public key to your account on GitHub.
+
+GITHUB FEATURES
+- You can access your repositories under the Your Repositories tab unde Your Profile in GitHub
+- Within repositories you can access and view code in files
+- The files/folders tell us how long ago they were changed and the latest commit in which they were changed
+- We can also click on the clock symbol in the repository to view our commit history in our web browser
+- While doing this you can also go into every particular commit that was made and the changes made in that commit
+- When doing this, you can also click on the Browse Files button near the above mentioned commit's name on the top 
+- This allows us to see all our files and folders at a particular commit (similar to git checkout <commit_hash>)
+
+UPDATING CODE IN YOUR LOCAL REPOSITORY FROM A REMOTE REPOSITORY
+
+- To get files from a remote repository onto your local machine, use the git clone command
+- Syntax: git clone <url> 
+- What this does: Download a remote repository from a url
+- The url mentioned here can be found by clicking the green code button on top of a repository homepage on GitHub
+- You can use either the HTTPS url or SSH url but it is better to use the ssh url
+- An alternative syntax: git clone <url> <folder_name>
+- What this does: Download the repository and give it a different folder name
+- If we use the formerly mentioned method of cloning without specifying the folder name, the folder will have the same name as the GitHub remote repo
+- Note: When you git clone a repository, Git automatically sets up the remote and names it origin by default
+
+- Now, we will look at git fetch
+- Syntax: git fetch
+- What it does: Updates all remote tracking branches. Remote tracking branches (like origin/main) show what the branch looks like in the remote repository
+- Note that updates made in the remote repository by other users aren't directly available in the remote tracking branch in your local repo
+- To update your remote tracking branches to have the same files as the remote repo, we use git fetch
+
+- Now, we can look at git pull
+- To pull changes from a remote GitHub repo we can also use git pull
+- Syntax: git pull <remote_name> <branch>
+- What this does: Update the local branch with any updates from the remote repository (on GitHub)
+- Example: git pull origin main
+- What this does: Downloads any new commits from the main branch on origin, and updates the local main branch with those new commits
+- You can also set up a shortcut similar to how you did for git push:
+- Syntax: git pull origin main --set-upstream
+- What this does: Sets up a shortcut so that the next time you are on the main branch and run git pull, it will automatically git pull origin main
+

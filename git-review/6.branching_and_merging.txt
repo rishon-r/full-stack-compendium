@@ -1,0 +1,108 @@
+
+ON BRANCHING AND MERGING
+
+- Git allows us to create branches separate from the main branch
+- This allows us to implement and test new features without causing possible problems in the main branch
+- Branching can be thought of as creating a copy of your version history to which you can add new commits that aren't visible on the main branch
+
+CREATING A NEW BRANCH
+
+- Syntax: git branch <branchname>
+- Usually branches are named after the feature that they are being used to implement
+- E.g git branch feature1
+- Above line will create a branch named feature1
+
+SWITCHING TO A DIFFERENT BRANCH
+
+- You can switch to a different branch using the git checkout command
+- Syntax: git checkout <branchname>
+- E.g git checkout feature1 
+- Above command will cause git to switch to the feature1 branch and start working on that branch
+- New commits will now be added to the feature1 branch
+
+DELETING A BRANCH
+
+-  Command to delete a branch is as follows: git branch -D <branchname>
+
+What does HEAD mean?- The word HEAD points to the branch that we are cuttently working on
+
+MERGING
+
+- git allows you to merge 2 branches
+- When you merge 2 branches, the merged result is available in the branch that you are currently working on
+- It is convention in the industry to add the final merged result to the main branch
+- Syntax: git merge <branchname> -m "message"
+
+MERGE CONFLICTS
+
+- A merge conflict occurs when Git cannot automatically combine changes from two branches because the same part of the same file has been modified differently in both branches.
+- This typically happens during a git merge when Git encounters overlapping changes that it can't resolve without human intervention.
+- In the branch where the merge is attempted, the conflicting file will be modified to show both versions of the conflicting changes.
+- Git marks the conflict using a standard format:
+    - The section from your current branch (the one you're merging into) appears after <<<<<<< HEAD
+    - The conflicting section from the branch you're merging appears after a divider line =======
+    - The end of the conflict is marked by >>>>>>> branch-name (where branch-name is the name of the branch being merged)
+- It is the developer’s responsibility to review the conflict, choose which version (or a combination) to keep, and manually edit the file to remove the conflict markers.
+- After resolving the conflict, you must:
+- Stage the resolved file using git add <filename>
+- Complete the merge by running git commit
+- You can always use git status to check which files are in conflict.
+
+FEATURE BRANCH WORKFLOW
+
+- Feature branches are a workflow 
+- They are a step by step process for using Git and GitHub
+- There are a set of steps involved in feature branch workflow
+- This is a worklow used by most companies in the industry
+
+- STEP 1: CREATE A FEATURE BRANCH
+- COMMANDS: 
+    git branch new-feature
+    git checkout new-feature
+    - make some changes to the code
+    git add .
+    git commit -m "message"
+
+- STEP 2: UPLOAD FEATURE BRANCH TO GITHUB (So other developers can see your code)
+- COMMANDS:
+    git push origin new-feature
+
+- STEP 3: CREATE A PULL REQUEST (DO CODE REVIEWS)
+A pull request is essentially a request to merge your changes into another branch — most commonly into the main branch of a repository.
+
+- STEP 4: MERGE FEATURE BRANCH WITH MAIN/MASTER BRANCH
+
+- STEP 5: AFTER MERGING, UPDATE THE LOCAL REPOSITORY
+- COMMANDS:
+    git checkout main
+    git pull origin main
+
+MERGE CONFLICTS IN FEATURE BRANCH WORKFLOW
+
+- A merge conflict can happen if 2 or more pull requests change the same file and the same line.
+- There are 2 options to solve such a merge conflict:
+- A. Solve the merge conflict on GitHub
+    - Click on Resolve conflicts button 
+    - Use the web editor to manually solve merge conflicts
+- B. Solve the merge conflict on our computer
+    - STEPS:
+    - 1. Get the latest updates from main. Commands:
+            git checkout main
+            git pull origin main
+
+    - 2. Get the latest updates from the feature branch. Commands:
+            git checkout feature
+            git pull origin feature
+
+    - 3. Merge main into the feature branch (feature4). Notice the direction of the merge: we want
+         the merge commit to stay on the feature branch so our teammates can review it. Commands:
+
+         git checkout feature
+         git merge master
+
+    - 4. Push the resolved feature branch to GitHub. Commands:
+         git push origin feature4
+
+    - Now the pull request should be ready to merge again.
+
+

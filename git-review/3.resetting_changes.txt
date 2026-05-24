@@ -1,0 +1,58 @@
+
+RESETTING STAGED CHANGES (Changes that have been added using git add but not commited with git commit yet)
+
+- This is done with the git reset command
+- It takes a file or folder as an argument
+- It basically moves all changes staged in that file/folder back to the working area
+- Works in a manner opposite to the git add command
+- The file goes back to being "modified but unstaged," and you can continue editing it, then git add it again when you're ready.
+
+Syntax: 
+
+git reset <file|folder>
+git reset file
+git reset folder/
+git reset .     
+
+REMOVING CHANGES IN WORKING AREA (Reverting a file in the working area to the way it was in previous commit)
+
+- To do this we use the git checkout command in a specific manner
+- What this does is restore the file/folder mentioned to the way it was in the last commit
+
+Syntax:
+
+git checkout -- <file|folder>
+git checkout -- file
+git checkout -- folder/
+git checkout -- .
+
+REVERTING BACK TO A PREVIOUS VERSION
+
+- As discussed before the previous commit history can be viewed using the git log command
+- Every commit has a unique id associated with it called the commit hash
+- This can be viewed in the git log
+- git checkout <commit_hash> will let us view how the files were in another commit
+- However, after reverting back to a previous version, one may notice that typing git log doesn't list future commits to that version that you have made
+- This is because git log only lists the current commit and commits before it
+- To view all commits even after reverting type: git log --all
+- The version we are currently viewing will have the HEAD written besides it in parentheses in the git log
+- In other words, HEAD indicates which commit you are currently viewing
+
+- So, how do we revert changes?
+- Note that simply checking out a commit doesn't revert changes back to that commit exactly
+- This is due to how git works internally with its branches
+- To view the way git has branched out as well, we can type: git log --all --graph
+- This gives us a view of the commit history along with how it has been branched
+
+- Instead of using a commit hash with the git checkout command, we can use a branch name
+- main is a branchname
+- git checkout branchname always points to the latest commit on the branch
+
+- To restore a file/folder to the way it was in a previous commit we use the git checkout alongside a commit hash/branch name and the name of respective file/folder
+- Syntax: 
+
+git checkout <hash|branch> <file|folder> - Restore the contents of files back to a
+previous commit
+git checkout <hash|branch> file - Restore a file
+git checkout <hash|branch> folder/ - Restore all files in folder (& subfolders)
+git checkout <hash|branch> .  - Restore all files in project

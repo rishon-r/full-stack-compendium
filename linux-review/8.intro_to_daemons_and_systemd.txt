@@ -1,0 +1,44 @@
+8. DAEMONS 
+
+- Recall that a process is an instance of a program, running in the memory
+- A DAEMON is a process that permanently runs in the background, independent of any user, waiting to do something when needed, without needing a user to interact with it
+- A process that requires a user to interact with it is called am interactive process
+- Daemons are essential to the working of the linux operating system
+- Daemons control many important aspects of the linux operating system such as networking, printing and ssh
+- Daemons start at boot time, not when a user logs in
+
+- How do we distinguish daemon processes from regular processes? - The names of daemon processes usually have a d at the end
+
+- Some examples of daemons:
+
+sshd  - Listens for incoming SSH connections
+httpd / nginx - Serves web pages when requests come in
+cron - Runs scheduled tasks at set times
+bluetoothd - Manages Bluetooth connections 
+printd - Handles print jobs
+
+- SystemD - The master daemon
+  - SystemD has two key purposes:
+    (i) It acts as the SERVICE MANAGER, managing all other daemons
+    (ii) It is also the INITIALIZATION SYSTEM ( often abbreviated to init system)
+      - Systemd is the first daemon and process that is started upon booting (note that macOS uses launchd as its init system not systemd)
+      - Since it is the first process that is started, it has PID 1
+      - After it is started, SystemD does some important tasks such as starting all the other daemons and mounting the file system
+      - SystemD starts all other processes by forking using the fork() system call in POSIX systems. 
+      - fork() allows a parent process to create a child process
+      - Hence, systemd is the parent of all other processes
+      - SystemD also monitors daemons when they are currently running and has the ability to restart them in the event of a crash
+      - It also stops all daemons safely on shutdown
+
+  - More on systemd as a Service Manager
+    - systemd refers to the other daemons in the system as units
+    - You interact with systemd with the help of a tool called systemctl
+    - Note that interacting with daemons manually has potential to be dangerous to the system and can cause the computer to even crash permanently
+    - So, when using systemctl in order to interact with a daemon, please ensure that you know exactly what you're doing
+    - Examples of using systemctl with sshd as our example daemon in this case:
+      systemctl status sshd        # check if sshd is running
+      systemctl start sshd         # start it
+      systemctl stop sshd          # stop it
+      systemctl restart sshd       # restart it
+      systemctl enable sshd        # make it start automatically at boot
+      systemctl disable sshd       # stop it from starting at boot

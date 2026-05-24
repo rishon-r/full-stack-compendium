@@ -1,0 +1,26 @@
+CONFIGURING USERNAME AND EMAIL
+
+- You want your name and email to be associated with every commit you make on git
+- To check all git config settings, type: git config --list
+- You can also check your username with: git config user.name
+- and check your email with: git config user.email
+
+- You configure username and email using the following 2 commands:
+
+git config --global user.name "Your Name"
+git config --global user.email "email@example.com"
+
+- The --global basically means the same username and email must be used in all repositories where git is initialized unless another repository is manually configured otherwise
+
+- You can also do git config --global --list to see the credentials configured on a global level
+
+- To manually configure username and email in a particular repository alone do as follows:
+
+git config user.name "Your Name"
+git config user.email "email@example.com"
+
+(NOTE HOW THEY ARE THE SAME COMMANDS WITH --global removed)
+
+- To see the configurations enabled in all repositories type: git config --global --list
+- If you don't use the global it baiscally just lists the configuration settings of the current repository
+
