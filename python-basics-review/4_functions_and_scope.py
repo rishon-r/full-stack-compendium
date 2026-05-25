@@ -213,7 +213,7 @@ display_names(*names) # We dereference here in the function call and it provides
 # Equivalence of whitespace should be tested after expansion of tabs (to 8 spaces, normally).
 
 # FUNCTION ANNOTATIONS
-# These are optional metadata about the types that the user defined function uses
+# These are optional metadata about the types that the user defined function uses (metadata means data abpout the data or information about the data)
 # They are stored in the .__annotations__ attribute of the function as a dictionary and have no effect on any otherpart of the function
 # It works as follows (taken from documentation)
 # Parameter annotations are defined by a colon after the parameter name, followed by an expression evaluating to the value of the annotation. 
@@ -226,3 +226,24 @@ def f(ham: str, eggs: str = 'eggs') -> str:
     return ham + ' and ' + eggs
 
 f('spam')
+
+# PYTHONIC WAY OF USING FUNCTIONS
+
+# All functions must be defined before they are used
+# The way this is done is that all function definitions are placed at the top of the program before the main of the program starts
+# Remember that Python is interpreted and that a Python file is executed from top to bottom
+# The main body of the function is typically written as function called main and placed as the first function at the top of the program
+# but note that this won't automatically be executed unless it is called
+# So, after all the functions are defined, the first statement that will be executed by our program will typically be main() which calls the main body function defined at the top of the program
+# You will typically see this be called as follows
+'''
+if __name__=='__main__':
+    main()
+'''
+
+# When Python runs a file, it automatically sets a special variable called name.When Python runs a file, it automatically sets a special variable called __name__.
+# Its value depends on how the file is being run
+# If the file is run directly, Python sets __name__ to "__main__"
+# If the file is imported as a module, Python sets __name__ to the name of the file
+
+# modules are imported in python via the import statemnt at the top of the file

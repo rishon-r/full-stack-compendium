@@ -214,7 +214,7 @@ for val1, val2 in zip(l1,l2):
 
 print(zip(l1,l2)) # This also only prints the object reference
 
-# The sorted() function returns a new sorted list while leavoing the original sequeence alone
+# The sorted() function returns a new sorted list while leavoing the original sequence alone
 # This can be useful when you want to loop through a sequence in ascending order
 
 # The set() function can be used when you want to remove duplicate elements from a sequence
