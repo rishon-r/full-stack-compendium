@@ -237,7 +237,7 @@ f('spam')
 # All functions must be defined before they are used
 # The way this is done is that all function definitions are placed at the top of the program before the main of the program starts
 # Remember that Python is interpreted and that a Python file is executed from top to bottom
-# The main body of the function is typically written as function called main and placed as the first function at the top of the program
+# The main body of the function is typically written as function called main and placed as the last function at the top of the program
 # but note that this won't automatically be executed unless it is called
 # So, after all the functions are defined, the first statement that will be executed by our program will typically be main() which calls the main body function defined at the top of the program
 # You will typically see this be called as follows
@@ -250,7 +250,6 @@ if __name__=='__main__':
 # Its value depends on how the file is being run
 # If the file is run directly, Python sets __name__ to "__main__"
 # If the file is imported as a module, Python sets __name__ to the name of the file
-
 # modules are imported in python via the import statement at the top of the file
 
 # SCOPING RULES
