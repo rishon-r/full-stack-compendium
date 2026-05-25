@@ -52,6 +52,11 @@ def addr(a,b):
     return a+b # returns the sum of a and b
 print(addr(5,7)) # Will print 12
 
+# We can also return multiple values in a return statement by separating them with a comma: E.g eturn a, b
+# This will return them as a tuple
+# We can either have the caller receive them as a tuple or unpack it directly at the caller
+
+
 # Methods are functions that belong to an object
 # They are referred to as obj.methodname()
 # We will come across these more when we study classes
@@ -246,4 +251,37 @@ if __name__=='__main__':
 # If the file is run directly, Python sets __name__ to "__main__"
 # If the file is imported as a module, Python sets __name__ to the name of the file
 
-# modules are imported in python via the import statemnt at the top of the file
+# modules are imported in python via the import statement at the top of the file
+
+# SCOPING RULES
+# Scope of a variable name refers to the parts of a program where it is legal and accessible
+# Variable names created within a function are said to be of local scope and can only be accessed within that function: they are not available to use outside the function
+# Names created in the main part of the program are said to have global scope
+# These names arre legal and accessible all throughout the program, even inside function bodies
+# An interesting case occurs when a variable in local scope and global scope have the same name
+# Will changes made to the variable inside a function be visible outside? - NO, unless global statement is used
+# If we want to use the global value inside the function such that changes made are reflected outside, we can use the global statement as follows (however it is generally considered a bad practice and is not recommended)
+
+# using global statement
+tigers = 12
+print(tigers)
+def scope_try():
+    global tigers
+    tigers+=7
+    print(tigers) # Will print 19
+
+scope_try()
+print(tigers) # Will print 19
+
+# not using global statement
+
+lions=12
+print(lions)
+def scope_try_two(lions):
+    lions+=7
+    print(lions) # Will print 19
+
+scope_try_two(lions)
+print(lions) # Will print 12, despite lions being passed as a argument
+# Changes made to immutable arguments passed into the function, inside the function, are not reflected outside the function
+
