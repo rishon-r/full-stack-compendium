@@ -40,3 +40,55 @@
 # 2. KeyError - You tried to look up a dictionary key that isn't there
 # 3. NameError - You used a variable or function name that hasn't been defined ye
 # 4. TypeError - You tried to do an operation on incompatible data types
+# 5. SyntaxError- Happens when you don't adhere to the syntax of the language
+
+# EXCEPTIONS AND EXCEPTION HANDLING
+# Exceptions in Python are errors detected during execution that interrupt the normal flow of a program
+# When something goes wrong, Python raises an exception. You can catch it to handle it gracefully instead of crashing.
+# A common example is ZeroDivisionError that occurs when you try dividing by zero
+# Python lets us handle exceptions via try and except blocks
+# E.g 
+try:
+    x = 1 / 0
+except ZeroDivisionError:
+    print("Can't divide by zero!")
+# What happens in a try/except block essentially is that Python will try and execute the code under the try block
+# If an exception is raised by the Python interpreter, the except block will catch the exception and instead the code under except block will be run
+# this prevents ugly error messages from being printed on the console
+# A more verbose example of try/except structure:
+'''
+try:
+    # code that might raise an exception
+except ExceptionType:
+    # runs if ExceptionType occurs
+except (TypeA, TypeB):
+    # catch multiple types at once
+except ExceptionType as e:
+    # 'e' holds the exception object/message.  
+except Exception as e:
+    # Will catch exception of any type and store it in e. Useful when we want to know what exception was caused
+except:
+    # catches everything (avoid this)
+else:
+    # runs ONLY if no exception was raised (good place for code that depends on try succeeding)
+finally:
+    # ALWAYS runs, no matter what (optional) (good for cleanup e.g. closing files/DB connections)
+'''
+
+# Raising your own exceptions
+# You can manually raise exceptions using the raise keyword
+# e.g
+def divide(a, b):
+    if b == 0:
+        raise ValueError("b cannot be zero")
+    return a / b
+# You can also raise a more generic exception with Exception instead of specifiying the type of error
+def set_age(age):
+    if age < 0:
+        raise Exception("Age cannot be negative")
+    return age
+
+
+# NOTE: Errors are not bugs
+# Bug — a mistake in your code logic written by the programmer. The code runs but behaves incorrectly.
+# Error — something that goes wrong during execution, which Python detects and reports.
