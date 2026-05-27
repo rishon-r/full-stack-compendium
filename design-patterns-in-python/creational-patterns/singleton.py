@@ -63,3 +63,5 @@ if __name__ == '__main__':
 # So, if we make changes to it locally and expect them not to be reflected in the global scope, we would be wrong
 # This means we have to be very careful when interacting with the singleton object as there are a lot of components of our program which depend on it
 # This drawback is called the HIDDEN GLOBAL STATE
+# Testing also becomes painful due to this as every test might modify the global state
+# This makes the Singleton patttern a sort of anti pattern in Python and usage of it is not recommended
