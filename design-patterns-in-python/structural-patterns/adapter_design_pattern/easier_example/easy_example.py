@@ -37,3 +37,13 @@ adapter = SensorAdapter(sensor)
 dashboard = Dashboard()
 
 dashboard.display(adapter)  # Temperature: 22.5
+
+'''
+EXPLANATION: 
+
+ExternalSensor is the incompatible class - you don't control it and can't modify it
+Dashboard only knows about the DataSource interface — it has no idea ExternalSensor exists
+SensorAdapter is the translation layer — it wraps ExternalSensor and makes it look like a DataSource
+Neither side changes — the adapter does all the work in between
+
+'''

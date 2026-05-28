@@ -6,6 +6,11 @@ The following is a repository I used to learn full stack fundamentals and backen
 
 - Git fundamentals
 - Python fundamentals
+- Object Oriented Programming in Python
+- Design Patterns in Python
+- Some Important Python Libraries
+- Network Programming in Python
+- Advanced Python Features
 - Data Structures with Python
 - Backend Development with FastAPI
 - Javascript and HTML/CSS fundamentals
