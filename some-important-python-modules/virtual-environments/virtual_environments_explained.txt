@@ -1,0 +1,37 @@
+WHAT ARE VIRTUAL ENVIRONMENTS?  
+
+Virtual environments are essentially self contained locations that allow you to maintain separate and isolated environments for your python projects
+
+This is so that the files on your main system don't get isturbed or overriden by tests and experiments that you run in your python projects
+This allows you to manage dependencies, versions and packages without conflicts arising between different projects and files on your systems
+
+Virtual envirnments allow you to install all packages that are in the appropriate versions for your project and keep them separate
+so that errors don't occur due to wrong versions or other dependency issues
+
+Note that virtual environments are directories on your system at a fundamental level
+
+HOW TO CREATE VIRTUAL ENVIRONMENTS?
+
+- Go to your terminal
+- Navigate into the directory where you want to create your virtual environment (this directory will generally be the location of a python project)
+- Once you are inside the directory you want, create a virtual environment using the venv command
+- Type: python -m venv name_of_virtual_environment in the terminal
+- Note that it is usually convention to name your virtual environments env
+- This will create a folder with the name of your virtual environment within the directory that you are in
+- Now you need to activate your virtual environment, type: source env/bin/activate
+- This should be typed in the directory that contains your virtual environment
+- If this command runs successfully, you will see (env) before your terminal
+- To deactivate it, simply type: deactivate
+- Once in the activated env, you can install any packages you want with pip
+- The versions of these packages will only be available when the env is activated
+- When it is deactivated, you will only be able to use packages installed in your system globally
+
+NOTE: since the virtual environment is just a directory, you should never commit it to Git. Instead you exclude it by adding env/ to your .gitignore file. This is standard practice
+
+requirements.txt is how you share your project's dependencies with others (or yourself on another machine) without sharing the virtual environment folder itself:
+
+pip freeze > requirements.txt      # saves all installed packages and versions to a file
+pip install -r requirements.txt    # installs all packages from the file
+
+pip freeze outputs a list of all packages currently installed in your active environment along with their exact versions,
+in a format that can be used to reinstall them late

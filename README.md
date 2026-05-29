@@ -30,6 +30,7 @@ The content involves notes I have taken from a series of great tutorials online.
 - ArjanCodes
 - NeuralNine
 - Derek Banas
+- Corey Schafer
 
 Most of the notes on here are from tutorials from the above channels and documentation of the technologies that I have used. I do not intend on profiting from this repository and any resemblance to the above tutorials is purely due to my learning from them. I sincerely thank the developer community online for helping me become the engineer I am today.
 
