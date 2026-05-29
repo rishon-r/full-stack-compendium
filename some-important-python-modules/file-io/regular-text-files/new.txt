@@ -1,0 +1,7 @@
+This is a file 
+ I can add
+ Multiple Lines
+ With write()
+First
+second
+Third
