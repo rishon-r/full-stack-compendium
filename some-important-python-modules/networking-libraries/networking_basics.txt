@@ -1,0 +1,73 @@
+To begin programming with sockets in Python, first we need to understand some important networking concepts.
+
+1. CLIENT-SERVER ARCHITECTURE:
+
+A network can be loosely defined as an interconnection of multiple computers. A network architecture refers to a particular 
+way of connecting these computers together.
+
+The client-server architecture is a type of network architecture. In the client-server architecture, a server is a central
+computer to which multiple computers are connected. These multiple computers that are connected to the server are 
+referred to as clients. It is important to note that these clients are not connected to each other. Any interaction
+between the clients goes through the server first. The server acts as a sort of intermediary between the clients.
+
+2. IP ADDRESSES AND PORTS:
+
+Every computer in a network has something known as an IP Address which helps us identify where the computer is located. This helps 
+us send or receive data from it. All computers that exist as a part of a network have an associated IP address in that network.
+
+In the client-server architecture, all clients and the server have an IP address. 
+
+Besides having an IP address, a computer can have many ports. Each port is a number that identifies
+a specific service or application that is listening for network connections on that computer.
+
+An analogy to help better understand this:
+
+Think of a network as a neighbourhood of different apartment buildings that are all connected together by roads.
+These apartment buildings are analagous to computers in a network and each apartment building has a unique address in this neighbourhood
+which serves as a parallel for IP adresses in a network. Every apartment building has multiple apartments in it, each with a unique door
+number. These individual apartments are analogous to ports in a computer.
+
+3. LOCAL IP ADRESSES vs PUBLIC IP ADDRESSES 
+
+A local IP address refers to a private IP address that computers hold within a local network. It is available and visible only within that network.
+
+A public IP address on the other hand is one that is visible and accessible throughout the internet. This is provided by the Internet Service Provider (ISP).
+All devices in the same local network use a single Public IP address while communicating via the internet.
+
+Local IP addresses keep internal devices organized and hidden while Public IP addresses let your local network talk to the internet. 
+
+
+4. SOCKETS
+
+A socket is essentially just a communication endpoint. Think of it like a plug: Applications plug into it in order to send and receive network messages. It is an abstraction
+that wraps lower level details such as the IP address, Port number and Protocol used into an easy to use interface for programs.
+
+There are mainly two types of sockets used and they can be distinguished based on the protocol used by the socket. These two protocols are:
+
+(i) TCP: Transmission Control Protocol
+
+- It is a connection based protocol (one needs to first establish a connection before sending data via TCP)
+- It is reliable (guarantees delivery i.e no packet loss)
+- It detects packet loss
+- Data transmission via TCP is sequential
+- Transmits data in the form of a byte stream
+- Terminates when we do not want a connection to exist anymore
+- Used when there can be no packet loss
+- Denoted by SOCK_STREAM in Python
+- Use case example: Email, File Transfer
+
+
+(ii) UDP: User Datagram Protocol
+
+- Unreliable (no guaranteed delivery as there might be packer loss)
+- Not a connection based protocol 
+- Fire and forget type protocol
+- Data is transported one datagram at a time
+- Faster than TCP
+- Not sequential
+- Used when some packet loss is acceptable
+- Denoted by SOCK_DGRAM in Python
+- Use case example: Voice calls, Video Calls
+
+
+
