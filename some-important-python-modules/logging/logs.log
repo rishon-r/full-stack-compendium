@@ -1,0 +1,11 @@
+2026-06-03 09:32:55,081 - INFO - info
+2026-06-03 09:32:55,081 - WARNING - warning
+2026-06-03 09:32:55,081 - ERROR - error
+2026-06-03 09:32:55,081 - CRITICAL - critical
+2026-06-03 09:32:55,081 - INFO - The value of x is 67
+2026-06-03 09:32:55,081 - ERROR - ZeroDivisionError
+Traceback (most recent call last):
+  File "/Users/rishon/Desktop/full-stack-compendium/some-important-python-modules/logging/logging_tutorial.py", line 30, in <module>
+    1/0
+    ~^~
+ZeroDivisionError: division by zero
