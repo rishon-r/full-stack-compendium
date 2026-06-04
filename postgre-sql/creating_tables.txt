@@ -1,0 +1,49 @@
+- CREATE A TABLE AS FOLLOWS:
+
+CREATE TABLE <optional_IF NOT EXISTS> <tablename> (
+
+  <colname> <datatype>(<size>) <optional_constraint>;
+  <colname> <datatype>(<size>) <optional_constraint>;
+  <colname> <datatype>(<size>) <optional_constraint>;
+)
+
+E.g
+
+CREATE TABLE people (
+  id INT PRIMARY KEY,
+  first_name VARCHAR(255) ,
+  last_name VARCHAR(255) NOT NULL,
+  age INT,
+  job VARCHAR(255),
+  employed BOOL
+)
+
+- VARCHAR and CHAR are both used to represent string based datatypes. VARCHAR however saves you some space in case strings are shorter
+than the specified length as it doesn't pad empty characters with white spaces like CHAR does
+
+- PRIMARY KEY, NOT NULL, UNIQUE are called constraints. Constraints enforce restrictions on the type of data that can be inserted into a particular column
+- PRIMARY KEY acts as sort of the unique identifier of a row in a table
+
+- INSERTING DATA INTO TABLES:
+
+INSERT INTO <tablename> VALUES(<val1>, <val2>, .... , <valN>)
+
+In the above statement, the values inserted have to match the datatypes of attributes of table exactly in order
+otherwise an error will be thrown
+
+In case you don't remember the order of columns or only want to insert values into specified columns,
+you can specify the column names in the insert statement as FOLLOWS
+
+INSERT INTO <tablename>(<col1>, <col2>, ... , <colN>) VALUES(<val1>, <val2>, .... , <valN>)
+
+Here, columns not specified will have NULL values inserted into them
+
+E.g 
+
+INSERT INTO people VALUES(1, 'Mark', 'Smithe', 23, 'Doctor', true)
+
+INSERT INTO people(id, first_name, age, job) VALUES(4, 'Jack', 34, 'Programmer')
+
+- DELETE an entire table from the database as follows:
+
+DROP TABLE <tablename>

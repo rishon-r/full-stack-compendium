@@ -1,0 +1,38 @@
+PostgreSQL
+
+- PostgreSQL is an open-source RDBMS (Relational Database Management System)
+- Data is stored in tables, also called relations, made up of rows and columns
+- Each column represents an attribute (e.g. name, age), and each row represents a single record
+- SQL (Structured Query Language) is used to interact with and query these tables
+- PostgreSQL is one of the most popular open-source relational database systems in the world
+
+- STARTING PostgreSQL in the COMMAND LINE:
+
+(i) Start Postgresql service: brew services start postgresql@16
+
+Above statement is typically only run once in the lifetime of postgresql in your system. After that you simply just need to 
+start prompt:
+
+(ii) Start prompt for REPL: psql postgres
+
+Type \q and hit enter to exit the REPL
+
+(iii) To stop Postgresql service: brew services stop postgresql
+ 
+- WHAT IS A POSTGRES SERVER?
+
+A server is a Postgres instance that is running.
+
+Servers consist of databases
+
+- WHAT IS A DATABASE?
+
+A database is a place where we can store data in an organized way. We should be able to save data, retrieve data, and run 
+operations on data stored in a database
+
+A database contains schemas, which in turn contain tables, views, and other objects
+
+- WHAT IS A SCHEMA?
+
+A schema is a namespace/container that organizes tables, views, and other objects inside a database
+

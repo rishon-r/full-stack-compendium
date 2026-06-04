@@ -1,0 +1,8 @@
+QUERYING tables
+
+- We use SQL (structured query language) in order to select particular rows from a tablename
+- THis process is known as querying and is done with the SELECT statement
+
+TO get all rows from table: SLEECT * FROM <tablename>
+
+E.g SELECT * FROM people;
