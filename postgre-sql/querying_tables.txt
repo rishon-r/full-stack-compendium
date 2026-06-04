@@ -3,7 +3,7 @@ QUERYING tables
 - We use SQL (structured query language) in order to select particular rows from a tablename
 - THis process is known as querying and is done with the SELECT statement
 
-TO get all rows from table: SLEECT * FROM <tablename>
+TO get all rows from table: SELECT * FROM <tablename>
 
 E.g SELECT * FROM people;
 
@@ -35,7 +35,7 @@ We say WHERE <col> LIKE 'pattern'
 
 The LIKE operator uses two special character: _ meaning single character and  % meaning any number of characters
 
-Example: WHERE name LIKE 'R%' will match any name that starts with RDBMS
+Example: WHERE name LIKE 'R%' will match any name that starts with R
 
 WHERE name LIKE '_s%' will match any name with second letter s
 
@@ -54,10 +54,131 @@ WHERE age BETWEEN 12 and 30
 
 We can similarly use NOT BETWEEN
 
-- Memebership: You can also select values that only belong to a particular collection. We do this with the IN operator
+- Membership: You can also select values that only belong to a particular collection. We do this with the IN operator
 E.g
 
 SELECT name FROM people
 WHERE job IN ('Electrician', 'PLUMBER');
 
-We can similarly use NOT IN in order to chieve the opposite
+We can similarly use NOT IN in order to achieve the opposite
+
+- ORDER BY clause:
+
+The order by clause allows you to order results based on a particular attribute
+
+You can also order by multiple columns, in which case the columns are given a preference based on the order they are listed in
+
+General syntax:
+
+SELECT <col1>, .. , <colN>
+FROM <tablename>
+ORDER BY <col3>, <col4>, .., <colN>
+
+Note that typically one doesn't order by more than one or two columns
+
+SELECT name, age, city
+FROM users
+ORDER BY age DESC, name ASC;
+
+Above example
+Orders by age first (oldest to youngest)
+If two people have the same age, orders them alphabetically
+
+DESC means descending order, ASC means ascending
+If ASC or DESC is not specified, postgres defaults to ASC
+
+GROUP BY statement: 
+
+The GROUP BY clause groups rows that have the same values in specified columns into summary rows.
+It is typically used with aggregate functions like COUNT, SUM, AVG, MIN, MAX
+
+General syntax:
+
+SELECT <col>, <aggregate_function>(<col>)
+FROM <tablename>
+GROUP BY <col>
+
+E.g: 
+
+SELECT city, COUNT(*) 
+FROM users
+GROUP BY city;
+
+It is illegal to have columns in the select statement that aren't mentioned in group by statement or aggregate functions of other columns
+
+MORE EXAMPLE:
+
+- COUNT: how many rows in each group
+SELECT city, COUNT(*) 
+FROM users 
+GROUP BY city;
+
+- SUM: total salary per department
+SELECT department, SUM(salary) 
+FROM employees
+GROUP BY department;
+
+- AVG: average salary per department
+SELECT department, AVG(salary) 
+FROM employees
+GROUP BY department;
+
+- MIN/MAX: youngest and oldest per city
+SELECT city, MIN(age), MAX(age) 
+FROM users
+GROUP BY city;
+
+You can also have multiple columns in the group by statement, example below:
+
+SELECT city, job_title, COUNT(*)
+FROM users
+GROUP BY city, job_title;
+
+Above example groups by unique combinations of city AND job title
+
+- HAVING clause:
+
+GROUP BY generally is used in combination with the HAVING clause
+
+HAVING is used to filter groups, similar to how WHERE filters rows
+
+The key difference:
+
+WHERE filters rows before grouping
+HAVING filters groups after grouping
+
+General syntax:
+
+SELECT <col>, <aggregate_function>(<col>)
+FROM <tablename>
+GROUP BY <col>
+HAVING <condition>
+
+Note: HAVING can only have conditions involving columns in the GROUP BY statement or AGGREGATE FUNCTIONS
+
+E.g
+
+SELECT city, COUNT(*) 
+FROM users
+GROUP BY city
+HAVING COUNT(*) > 5;
+
+Above example only shows cities that have more than 5 users
+
+General order of clauses: 
+
+SELECT
+FROM
+WHERE
+GROUP BY
+HAVING
+ORDER BY
+
+E.g 
+
+SELECT city, COUNT(*)
+FROM users
+WHERE age > 18
+GROUP BY city
+HAVING COUNT(*) > 5;
+
