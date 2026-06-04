@@ -10,7 +10,7 @@ CREATE TABLE <optional_IF NOT EXISTS> <tablename> (
 E.g
 
 CREATE TABLE people (
-  id INT PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   first_name VARCHAR(255) ,
   last_name VARCHAR(255) NOT NULL,
   age INT,
@@ -23,6 +23,9 @@ than the specified length as it doesn't pad empty characters with white spaces l
 
 - PRIMARY KEY, NOT NULL, UNIQUE are called constraints. Constraints enforce restrictions on the type of data that can be inserted into a particular column
 - PRIMARY KEY acts as sort of the unique identifier of a row in a table
+- If rows inserted violate these constraints, PostgreSQL will throw an error
+
+- SERIAL datype means that you don't have to specify the id in every insertion and that the id autoincrements from the last row
 
 - INSERTING DATA INTO TABLES:
 
@@ -44,6 +47,12 @@ INSERT INTO people VALUES(1, 'Mark', 'Smithe', 23, 'Doctor', true)
 
 INSERT INTO people(id, first_name, age, job) VALUES(4, 'Jack', 34, 'Programmer')
 
+You can also insert multiple rows at the same time:
+
+INSERT INTO people(id, first_name, age, job) VALUES (5, 'John', 34, 'Baptist'), (6, 'Jim', '67', 'Paper Salesman')
+
 - DELETE an entire table from the database as follows:
 
 DROP TABLE <tablename>
+
+TRUNCATE TABLE <tablename> will remove all rows from table but table will still exist

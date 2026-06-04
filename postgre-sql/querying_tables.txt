@@ -6,3 +6,58 @@ QUERYING tables
 TO get all rows from table: SLEECT * FROM <tablename>
 
 E.g SELECT * FROM people;
+
+- WHERE clause
+
+The WHERE clause when used in conjunction with the SELECT statement is used to filter the rows we query
+It allows us to pick only those rows that adhere to some particular condition
+
+E.g
+
+SELECT name FROM people
+WHERE age<40;
+
+- General syntax of select statement that we will see:
+
+SELECT <col1>, <col2>, ... , <colN>
+FROM <tablename>
+WHERE <condition>
+
+- More on the condition:
+
+The condition is usually a combination of a column name and some relational operator <, > , <=, >=, = , <>
+
+Multiple conditions can be joined with the AND and OR operator
+
+- The LIKE operator can also be used in the condition of where clause:
+
+We say WHERE <col> LIKE 'pattern'
+
+The LIKE operator uses two special character: _ meaning single character and  % meaning any number of characters
+
+Example: WHERE name LIKE 'R%' will match any name that starts with RDBMS
+
+WHERE name LIKE '_s%' will match any name with second letter s
+
+- DISTINCT clause: DISTINCT is used to remove duplicate values from your results, returning only unique values
+
+Syntax: SELECT DISTINCT column_name FROM table_name;
+
+- BETWEEN operator: Used to select those values that belong in a range
+
+Note that the between clause is inclusive on upper and lower limits
+
+E.g 
+
+SELECT name FROM people 
+WHERE age BETWEEN 12 and 30
+
+We can similarly use NOT BETWEEN
+
+- Memebership: You can also select values that only belong to a particular collection. We do this with the IN operator
+E.g
+
+SELECT name FROM people
+WHERE job IN ('Electrician', 'PLUMBER');
+
+We can similarly use NOT IN in order to chieve the opposite

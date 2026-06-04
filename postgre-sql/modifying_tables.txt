@@ -1,0 +1,46 @@
+
+- UPDATE statement:
+
+The UPDATE statement is used to change the rows inside a table
+
+General syntax:
+
+UPDATE <tablename>
+SET <col> = <val>
+WHERE <condition>
+
+If WHERE is not mentioned, it will change all the rows in the table
+
+This will set value of given column to new value mentioned in all rows that satisfy that condition
+
+E.g
+
+UPDATE people
+SET employed=true
+WHERE JOB IS NOT NULL
+
+You can also update multiple columns at once:
+
+UPDATE people
+SET employed = true, salary = 50000
+WHERE job IS NOT NULL;
+
+- DELETE statement:
+
+The DELETE statement is used to remove all rows from a table that satisfy a following condition
+
+In the most basic form it is:
+
+DELETE FROM <tablename>
+
+This will delete all rows from a table but won't delete the table itself
+
+More commonly, you will see it used as follows:
+
+DELETE FROM <tablename>
+WHERE <condition>
+
+E.g
+
+DELETE FROM people
+WHERE age > 60;
