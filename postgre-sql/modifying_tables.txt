@@ -44,3 +44,50 @@ E.g
 
 DELETE FROM people
 WHERE age > 60;
+
+- The ALTER TABLE command
+
+ALTER TABLE is a DDL (Data Definition Language) command used to modify the structure of an existing table — without touching the data inside it.
+
+E.g ADDING A COLUMN
+
+ALTER TABLE users
+ADD COLUMN email TEXT;
+
+With a default value:
+
+ALTER TABLE users
+ADD COLUMN active BOOLEAN DEFAULT true;
+
+e.g DROPPING A COLUMN
+
+ALTER TABLE users
+DROP COLUMN email;
+
+If you're not sure the column exists:
+
+ALTER TABLE users
+DROP COLUMN IF EXISTS email;
+
+Renaming a column:
+
+ALTER TABLE users
+RENAME COLUMN name TO full_name;
+
+Setting and dropping default values:
+
+Set a default:
+ALTER TABLE users
+ALTER COLUMN active SET DEFAULT true;
+
+Remove a default:
+ALTER TABLE users
+ALTER COLUMN active DROP DEFAULT;
+
+Adding constraints:
+
+ALTER TABLE users
+ADD CONSTRAINT unique_email UNIQUE (email);
+
+ALTER TABLE users
+ADD CONSTRAINT users_pkey PRIMARY KEY (id);

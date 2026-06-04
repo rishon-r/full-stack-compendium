@@ -182,3 +182,18 @@ WHERE age > 18
 GROUP BY city
 HAVING COUNT(*) > 5;
 
+- COLUMN ALIASES:
+
+A column alias is used to rename a column in your output using the AS keyword
+
+E.g 
+
+SELECT name, salary * 12 AS annual_salary
+FROM employees;
+
+Instead of showing ?column? or salary * 12 as the header, it will show annual_salary
+
+General Syntax:
+
+SELECT <col> AS <alias>
+FROM <tablename>;

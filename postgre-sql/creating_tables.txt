@@ -56,3 +56,54 @@ INSERT INTO people(id, first_name, age, job) VALUES (5, 'John', 34, 'Baptist'), 
 DROP TABLE <tablename>
 
 TRUNCATE TABLE <tablename> will remove all rows from table but table will still exist
+
+
+- FOREIGN KEYS:
+
+A foreign key is a column in one table that references the primary key of another table, creating a link between the two tables
+
+Note that the table with the primary key that the foreign key references ,ust be created before the table with the foreign key
+
+E.g for creation
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name TEXT
+);
+
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    product TEXT,
+    user_id INTEGER REFERENCES users(id)
+);
+
+user_id in the above example is a foreign key
+
+Foreign keys enforce referential integrity — meaning the database won't let you do something that breaks the link between tables
+
+This will FAIL - user_id 99 doesn't exist in users table
+
+INSERT INTO orders (product, user_id)
+VALUES ('Laptop', 99);
+
+This will FAIL - John has orders linked to him
+
+DELETE FROM users WHERE id = 1;
+
+This works - user_id 2 exists
+
+INSERT INTO orders (product, user_id)
+VALUES ('Laptop', 2);
+
+
+ON DELETE BEHAVIOUR: What happens to the orders when a user is deleted? You can control this
+
+RESTRICT (default): block the delete if linked rows exist
+REFERENCES users(id) ON DELETE RESTRICT
+
+CASCADE: delete the orders too when user is deleted
+REFERENCES users(id) ON DELETE CASCADE
+
+SET NULL: set user_id to NULL when user is deleted
+REFERENCES users(id) ON DELETE SET NULL
+
