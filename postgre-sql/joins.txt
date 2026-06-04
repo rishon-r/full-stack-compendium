@@ -1,0 +1,64 @@
+JOINS
+
+You will oftentimes want to query results from more than one table at the same time
+
+You do this with the help of JOINS
+
+The most elementary construct from which the join is built is called the CARTESIAN PRODUCT
+Given two tables the cartesian product returns a table with every row of the first table joined with every row of the second table
+If there are n rows in the first table and m rows in the second table, the cartesian product will return a table with n * m rows
+
+Syntax for cartesian product of two tables:
+
+SELECT * 
+FROM table1, table2
+
+However, we often want a query of more specificity to be run on the two tables
+
+This is where the EQUIJOIN comes in
+The EQUIJOIN involves joining two tables if they have the same values in a particular column
+
+Example:
+
+SELECT programmer.name, accountant.name FROM programmers, accountants
+WHERE programmer.manager = accountants.manager; 
+
+another way to do this (newer and more common way): INNER JOIN, see below
+
+This will also return the same result as equijoin: 
+
+SELECT * FROM users
+JOIN orders ON users.id = orders.user_id;
+
+Above query will give you pairs of programmers and accountants that share the same manager
+
+The NATURAL JOIN is used when the common attribute you want to JOIN the tables on has the same column name in both tables
+In this case the common table appears only once whereas in the equijoin it will appear twice
+
+Example (same as above):
+
+SELECT programmer.name, accountant.name 
+FROM programmers NATURAL JOIN accountants
+
+NOTE: NATURAL JOIN is risky in practice because it automatically joins on ALL columns that share the same name, which can give unexpected results. INNER JOIN is almost always preferred.
+
+There exist a few more important joins:
+
+INNER JOIN: only rows that match in BOTH tables (Inner join is a newer way of writing equijoin: both will return the exact same result)
+
+SELECT * FROM users
+INNER JOIN orders ON users.id = orders.user_id;
+
+LEFT JOIN: all rows from left table, matched rows from right (if no match right side remains NULL)
+
+SELECT * FROM users
+LEFT JOIN orders ON users.id = orders.user_id;
+
+RIGHT JOIN: all rows from right table, matched rows from left (if no match left side remains NULL)
+SELECT * FROM users
+RIGHT JOIN orders ON users.id = orders.user_id;
+
+FULL JOIN: all rows from both tables, NULLs fill in where no match
+
+SELECT * FROM users
+FULL JOIN orders ON users.id = orders.user_id;
