@@ -1,7 +1,7 @@
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Float, ForeignKey
 
 # Here, Metadata, Table, and Column are all classes
-# Integer and String are data types for columns
+# Integer, Float and String are data types for columns
 # sqlalchemy automatically maps these datatypes to the datatypes used by the database technology you are connecting to 
 # So your python code remains the same regardless of the database you are connecting to
 
@@ -31,6 +31,16 @@ people = Table("people", metadata,
 # It simply adds a table definition to metadata
 # Then to create all tables in metadata, we run metadat.create_all() and pass the engine as the argument
 
+things = Table("things", metadata,
+              Column('id', Integer, primary_key = True),
+              Column('name', String, nullable = False),
+              Column('description', String),
+              Column('price', Float),
+              Column('owner', Integer, ForeignKey('people.id')),
+)
+
+# Person to Things is a one to many relationship now
+
 metadata.create_all(engine) # Will create all tables 
 
 # Great question. When you call metadata.create_all(engine), you don't need to manually open a connection — SQLAlchemy handles that internally.
@@ -59,6 +69,17 @@ result = conn.execute(insert_statement)
 insert_statement = people.insert().values(name='Mary', age=31, id=4) 
 result = conn.execute(insert_statement)
 
+# INSERTING MULTIPLE VALUES WITH THE HELP OF A DICTIONARY
+insert_statement = things.insert().values([
+  {'id': 1, 'name': 'bowl', 'description': "blue, ceramic", 'price': 6.7, 'owner': 1}, 
+  {'id': 2, 'name': 'wine glass', 'description': "clear, white wine", 'price': 12, 'owner': 1}, 
+  {'id': 3, 'name': 'TV', 'description': "LG, OLED", 'price': 300.0, 'owner': 2}, 
+  {'id': 4, 'name': 'T Shirt', 'description': "Black, V neck", 'price': 20, 'owner': 3}, 
+  {'id': 5, 'name': 'Baseball Bet', 'description': "Louisville Slugger", 'price': 50, 'owner': 4}, 
+]) 
+
+result = conn.execute(insert_statement)
+
 conn.commit()
 
 
@@ -85,3 +106,15 @@ result.first()      # returns first row and closes the result set
 
 # NOTE: you don't need to commit after a SELECT statement
 # commit() is only needed when you modify the database: INSERT, UPDATE, DELETE
+
+# UPDATING A TABLE
+# Updat statements in SQLAlchemy are also relatively straight forward
+
+update_statement = people.update().where(people.c.age == 30).values(age=31)
+result = conn.execute(update_statement)
+conn.commit()
+
+# DELETING FROM A TABLE
+delete_statement = people.delete().where(people.c.age == 31)
+result = conn.execute(delete_statement)
+conn.commit()
