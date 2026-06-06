@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Float, ForeignKey
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Float, ForeignKey, func
 
 # Here, Metadata, Table, and Column are all classes
 # Integer, Float and String are data types for columns
@@ -118,3 +118,21 @@ conn.commit()
 delete_statement = people.delete().where(people.c.age == 31)
 result = conn.execute(delete_statement)
 conn.commit()
+
+# JOINS
+# .join is besically an inner join
+join_statement = people.join(things, people.c.id == things.c.owner)
+select_statement = people.select().with_only_columns(people.c.name, things.c.description).select_from(join_statement)
+
+result = conn.execute(select_statement)
+
+for row in result.fetchall():
+  print(row)
+
+# GROUP BY
+
+group_by_statement = things.select().with_only_columns(things.c.owner, func.sum(things.c.price)).group_by(things.c.owner).having(func.sum(things.c.value) > 50)
+result = conn.execute(group_by_statement)
+
+for row in result.fetchall():
+  print(row)
