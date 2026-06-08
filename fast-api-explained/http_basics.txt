@@ -1,0 +1,116 @@
+HTTP (Hypertext Transfer Protocol)
+
+- HTTP is the protocol of the web
+- It is used for communication between web servers and clients
+- Clients make HTTP requests to the server and the server replies with HTTP responses
+- This is called the HTTP Request/Response cycle
+
+HTTP is STATELESS: Every request is completely INDEPENDENT.
+-  Does not depend on or require data from previous requests.
+- Each request can be viewed as a single transaction.
+-  It is common however to use things like cookies in the occasion that one requires some data to be remembered. 
+- But at its core, HTTP is completely stateles
+
+HTTPS: Hyper Text Transfer Protocol Secure
+- Here all the data that is sent is encrypted with something known as SSL (Secure Sockets Layer) or TLS (Transport Layer Security)
+- Use it when the information being sent is sensitive
+
+HTTP Methods: When a request is made to a server by a client, it has a method attached to it. There are quite a few HTTP methods but the main ones are as follows:
+
+(i) GET: Retrieves data from the server (E.g when you are trying to load a web page)
+
+(ii) POST: Submits data to the server (E.g when you submit a form)
+
+(iii) PUT: Updates data already on the server (E.g Editing a blog post)
+
+(iv) DELETE: Deletes data from the server 
+
+HTTP Header Fields: Each HTTP request/response has a header and a body
+- The body represents the actual data that is being sent and the headers represent metadata about the body
+- A HTTP request or response usually has multiple header fields
+- HTTP Headers are key: value pairs that give metadata about the request or response
+- Metadata basically means data about data
+- HTTP headers give data about the actual data in the body of the HTTP message
+- They usually provide information about the request, response or how the client should behave
+- HTTP headers consist of a name and a value in the form of a Key: Value Pair in the form Name: Value
+- HTTP Header Fields are classified into General Headers, Request Headers, Response Headers and Entity Headers
+
+        1. General Headers: Metadata about the message not the contents. Used in Both Requests and Responses.
+        Examples:
+            - Connection: Keep alive or close
+            - Date: Date/Time of message
+            - Cache-control: How caching should be handled
+
+        2. Request Headers: Information about the client or resource requested
+            - Cookies- If a cookie was previously assigned by a server to client and needs to be passed back it is done here
+            - Accept-xxx- Multiple Accept fields like Accept-encoding exist
+            - Content-Type- Type of data being sent
+            - Content-length- self explanatory
+            - Authorization- As HTTP is stateless, one might need to send some kind of token in order to validate
+            - User-Agent- Usually a long string that has to do with the software the user is using
+            - Referrer- Holds info regarding referring site if one were to click on a link
+
+        3. Response Headers: Information about the server or response
+            - Server-  kind of server essentially, usually hidden  E.g Apache, Nginx
+            - Content-Type- type of content essentially (E.g JSON, HTML)
+            - Content-Length- self explanatory, given in octets
+            - Set-Cookie- Allows server to give a piece of data called a cookie to client
+            - Date
+
+        4. Entity Headers: Describe the content in the body of the request/response
+
+HTTP STATUS CODES - Very important to understand and memorize
+    - A status code is a 3 digit number sent by the server in a HTTP response
+    - It tells the client what happened to the request
+    - First digit groups codes into categories
+    - 1xx: INFORMATIONAL (Request received/processing)
+    - 2xx: SUCCESS (Successfully received, understood and accepted)
+    - 3xx: REDIRECT (Further action must be taken/ Redirect)
+    - 4xx: CLIENT ERROR (Request does not have what it needs)
+    - 5xx: SERVER ERROR (Server failed to fulfill an apparent valid request)
+    - Examples: 200- OK, 201- OK Created, 301- Moved to new URL, 304- Not modified (Cache Version), 400- Bad Request, 401- Unauthorized, 404- Not found, 500- Internal Server Error
+
+HTTP Request structure:
+    <method> <path> <version>
+    <headers>
+
+    <body> 
+
+    - Here, path refers to the route of the site being called
+    - version refers to the HTTP version. Version mentioned determines the structure of the remaining part of the request
+    - method is the HTTP method
+
+    Example:
+    GET /index.html HTTP/1.1
+    Host: example.com
+    User-Agent: curl/7.68.0
+    Accept: */*
+
+HTTP Response structure:
+	<version> <status_code> <status_text>
+    <headers>
+
+    <body>
+
+    Example: 
+    HTTP/1.1 200 OK
+    Content-Type: text/html
+    Content-Length: 1256
+
+    <html> ... </html>
+
+- HTTP/2
+    - HTTP version 1.1 has been the standard for a long time
+    - Now it has been revised and there is a new version of HTTP, HTTP/2
+    - Lot of under the hood changes 
+    - Responds with more data
+    - It is fast, efficient and secure.
+    - It reduces latency by enabling full request and response multiplexing
+
+
+- HTTP/3
+    - HTTP version 3.0 is also in existence
+    - One of the main changes is the use of the QUIC protocol instead of the TCP protocol
+    - The QUIC protocol can be thought of as the UDP protocol with all the reliability that the TCP protocol has
+    - It also does not involve the long handshake process that TCP involves
+    - This was done primarily to improve performance
