@@ -3,6 +3,8 @@ SQLAlchemy is a popular Python library for working with relational databases. It
 
 1. ORM (Object-Relational Mapper)
 Maps Python classes to database tables, letting you interact with your database using Python objects instead of raw SQL
+Rows become instances of those Python clases
+The ORM translates your code into the appropriate SQL queries behind the scenes
 
 2. Core (SQL Expression Language)
 A lower-level databse toolkit for building and executing SQL queries programmatically, giving you fine-grained control while still being Pythonic
@@ -13,7 +15,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 
 # Create engine is a function in SQLALchemy that sets up a connection to a database
-# It creates an engine object which is the central point of coneectivity to a database in SQLAlchemy
+# It creates an engine object which is the central point of conectivity to a database in SQLAlchemy
 # Manages a connection pool — a cache of reusable database connections
 # It implements something known as lazy connection: it doesn't open a connection right away but only does so when you use it
 # It takes a database url to connect to as an argument

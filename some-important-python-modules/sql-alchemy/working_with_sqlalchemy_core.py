@@ -43,7 +43,7 @@ things = Table("things", metadata,
 
 metadata.create_all(engine) # Will create all tables 
 
-# Great question. When you call metadata.create_all(engine), you don't need to manually open a connection — SQLAlchemy handles that internally.
+# When you call metadata.create_all(engine), you don't need to manually open a connection — SQLAlchemy handles that internally.
 # It opens a connection from the pool, runs the CREATE TABLE statements, and closes it automatically
 
 # You do however, need to manually open a connection any time that you plan on running actual queries
