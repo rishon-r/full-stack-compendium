@@ -50,3 +50,9 @@ the server can handle other requests, leading to improved throughput and respons
 
 FastAPI uses ASGI
 
+Note on Uvicorn:
+
+Uvicorn is an ASGI server.
+
+ASGI is the standard/contract that defines how a web server communicates with a Python application
+Something needs to actually implement and run that standard — that is what Uvicorn is

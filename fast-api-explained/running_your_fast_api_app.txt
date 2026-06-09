@@ -1,0 +1,12 @@
+Run your fastapi app by typing: fastapi dev main.py
+
+fastapi — the FastAPI CLI (command line tool) that comes with pip install "fastapi[standard]"
+dev — tells it to run in development mode
+main.py — the file that contains your FastAPI application
+
+What development mode does: 
+
+Auto-reload — automatically restarts the server whenever you save changes to your code, so you don't have to manually stop and restart the server every time you make a change
+Runs Uvicorn — under the hood this command actually starts a Uvicorn ASGI server to serve your application
+Enables debug mode — gives more detailed error messages to help you during development
+
