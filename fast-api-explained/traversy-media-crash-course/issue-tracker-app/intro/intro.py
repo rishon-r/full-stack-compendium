@@ -75,6 +75,24 @@ Here: city is optional and defaults to None if not provided
 '''
 
 # POST request
+'''
+Note on how arguments passed to POST methods work:
+
+For each function parameter:
+        ↓
+Is it a Pydantic model?
+    Yes → Request Body
+        ↓
+Is it in the URL path?
+    Yes → Path Parameter
+        ↓
+Does it use Header()/Query()/Body()?
+    Yes → Whatever marker says
+        ↓
+None of the above?
+    → Query Parameter
+    
+'''
 @app.post("/items")
 def create_item(item: dict):
   items.append(item)
