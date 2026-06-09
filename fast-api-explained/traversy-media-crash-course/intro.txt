@@ -1,0 +1,52 @@
+INTRO TO FAST API
+
+FastAPI is a modern, high performance (fast) web framework used to build APIs with Python
+
+It is built on two important technologies: Starlette and Pydantic
+
+Starlette is a lightweight ASGI (Asynchronous Server Gateway Interface) framework/toolkit. 
+Starlette is a tool that makes it easier to build web applications that follow the ASGI standard — 
+so you don't have to implement all the low-level ASGI details yourself
+It is used for handling the web related aspects of fastAPI like routing, middleware, and requests/responses. 
+FastAPI adds a robust layer atop this for building fastAPIs. Since Starlette is asynchronous, it is very fast.
+
+Pydantic is used for DATA VALIDATION.
+Pydantic is a Python library used for data validation and data modeling using Python type hints
+Pydantic lets you define what your data should look like and automatically validates and enforces that structure when data comes in
+Data Models define the structure, format and rules of the data that is exchanged between the client
+and the server. Here, data models are defined using Python type hints, and FastAPI automatically validates incoming requests
+against those models resulting in AUTOMATIC DATA VALIDATION
+
+FastAPI also has AUTOMATIC INTERACTIVE DOCUMENTATION: FastAPI automatically generates interactive API documentation using
+Swagger UI and ReDoc. It also provides you with and automatic interface for testing API endpoints without writing any extra code.
+This eliminates the need of postman or curl for testing
+
+FastAPI supports ommon security practices such as OAuth, JWT, and HTTP Basic Auth. It makes it easier to secure your API endpoints
+
+FastAPI also has built in WebSocket supports
+
+It also provides an easy learning experience by reducing the amount of boilerplate code
+
+Dependency Injection: FastAPI has a powerful dependency injection system that makes it easy to manage components like database connections, authentication, etc.
+You can define dependencies as functions and FastAPI will handle their lifecycle
+
+
+ASGI (Asynchronous Server Gateway Interface) vs WSGI (Web Server Gateway Interface): A slight detour
+
+A gateway is a middleman that sits between the client and your actual application/server. 
+It receives incoming requests and forwards them to the appropriate backend, then returns the response back to the client.
+
+ASGI and WSGI are gateway interfaces/contracts. 
+A Gateway Interface is a standard/contract that defines how two different systems communicate with each other — specifically how a web server talks to an application
+
+WSGI was the old standard and is synchronous (can only handle one request at a time)
+
+ASGI is its successor and is asynchronous (can handle multiple requests at the same time)
+This makes ASGI more suitable for modern web applications that require real-time features, 
+long-lived connections (like WebSockets), and better performance under high load
+
+ASGI enables async/await syntax in Python, allowing for non-blocking I/O operations. This means that while waiting for a database query or an external API call,
+the server can handle other requests, leading to improved throughput and responsiveness
+
+FastAPI uses ASGI
+

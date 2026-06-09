@@ -1,0 +1,49 @@
+What is an API?
+
+- API stands for APPLICATION PROGRAM INTERFACE
+- It is a CONTRACT provided by one piece of a software to another
+- It consists of a structured request and response
+- i.e if given a resquest in a manner structured according to a particular format, it will return a respons in a particular way
+
+What is REST?
+
+- REST stands for Representational State Transfer
+- It is an architecture style for designing network applications
+- It relies on a stateless client-server protocol (almost always HTTP)
+- It treats server objects as resources that can be created or destroyed
+- Can be used by essentially any programming language
+
+REST APIs and RESTful APIs are essentially APIs that conform to the REST framework
+
+How HTTP Methods are used in a REST API: 
+
+(i) GET: Retrieves data from a specified resource(E.g when you are trying to load a web page)
+
+(ii) POST: Submits data to be processed to a specified resource (E.g when you submit a form)
+
+(iii) PUT: Updates a specified resource (E.g Editing a blog post)
+
+(iv) DELETE: Deletes a specified resource
+
+ENDPOINTS:
+
+Endpoints refer to the specific URL where an API receives requests and delivers responses (i.e the URL where API can be accessed by a client application)
+
+Well-designed APIs use the same base endpoint with different HTTP methods
+
+Example (taken from blog.postman.com):
+
+ENDPOINTS                                     METHOD                    ACTION
+
+https://site.com/api/products                 GET                       List all products
+https://site.com/api/products                 POST                      Create a new products
+https://site.com/api/products/789             GET                       Get specific product details
+https://site.com/api/products/789             PUT                       Update entire product
+https://site.com/api/products/789             DELETE                    Remove product
+
+
+AUTHENTICATION: Some APIs require authentication before you use them
+
+A common way of implementing authentication is OAuth which involves supplying a certain token for access along with your request
+
+
