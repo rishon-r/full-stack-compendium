@@ -1,6 +1,6 @@
 from fastapi import APIRouter # Imports the APIRouter class from FastAPI
-from fastapi import HTTPException, status
-from app.schema import IssueCreate, IssueOut, IssueUpdate
+from fastapi import HTTPException, status # For providing the valid status code/exceptions as a result of a request
+from app.schemas import IssueCreate, IssueOut, IssueUpdate
 from app.storage import load_data, save_data
 import uuid
 
@@ -52,5 +52,53 @@ def create_issue(payload: IssueCreate): # payload: IssueCreate - FastAPI automat
     save_data(issues) # save_data(issues) - Persists to the JSON file immediately
 
     return issue
+
+@router.get("/{issue_id}", response_model=IssueOut)
+def get_issue(issue_id: str):
+   """Retrieve a specific issue by ID"""
+   issues = load_data()
+   for issue in issues:
+      if issue["id"]==issue_id:
+         return issue
+   raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Issue not found")
   
   
+@router.put("/{issue_id}", response_model=IssueOut)
+def update_issue(issue_id: str, payload: IssueUpdate):
+    """Update an existing issue by ID."""
+    issues = load_data()
+
+    for issue in issues:
+        if issue["id"] == issue_id:
+            if payload.title is not None:
+                issue["title"] = payload.title
+            if payload.description is not None:
+                issue["description"] = payload.description
+            if payload.priority is not None:
+                issue["priority"] = payload.priority.value
+            if payload.status is not None:
+                issue["status"] = payload.status.value
+
+            save_data(issues)
+            return issue
+
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Issue not found"
+    )
+
+@router.delete("/{issue_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_issue(issue_id: str):
+    """Delete an issue by ID."""
+    issues = load_data()
+
+    for i, issue in enumerate(issues):
+        if issue["id"] == issue_id:
+            issues.pop(i)
+            save_data(issues)
+            return
+
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Issue not found"
+    )
