@@ -1,0 +1,20 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>
+      {% if title %}
+        FastAPI Blog - {{ title }}
+      {% else %}
+        FastAPI Blog
+      {% endif %}
+
+    </title>
+  </head>
+  <body>
+    <!-- Below block syntax creates a block called content which child templates can override-->
+     <!-- We can have multiple blocks with different names if needed -->
+    {% block content %}
+    {% endblock content %}
+  </body>
+</html>

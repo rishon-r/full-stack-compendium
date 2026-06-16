@@ -1,0 +1,9 @@
+
+{% extends "layout.html" %}
+{% block content %}
+    {% for post in posts %}
+      <!--Jinja 2 allows us to access dictionary values using dot notation, see below-->
+      <h2> {{ post.title }} </h2>
+      <p> {{ post.content }}</p>
+    {% endfor %}
+ {% endblock content %}

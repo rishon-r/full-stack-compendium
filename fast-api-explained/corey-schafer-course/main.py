@@ -1,5 +1,43 @@
 from fastapi import FastAPI # importing the FastAPi class that is used to create our app instance
 from fastapi.responses import HTMLResponse # allows our server to return HTML rendered as a response
+from fastapi import Request # Jinja 2 templates require the Request object
+from fastapi.templating import Jinja2Templates # Importing Jinja2Templates
+
+# This creates a templates object that knows to look in our templates directory to find our templates files
+templates = Jinja2Templates(directory="templates") 
+# JINJA 2 TEMPLATES: Templates allow us to serve HTML pages to our users while still maintaining JSON endpoints for our backend
+# With jinja 2 we can pass data to templates and also implement for loops and conditionals in our template
+# Templates also allow us to write our html in HTML files rather than simply writing our HTML in Python strings
+# For larger projects, writing our HTML in Python strings will be almost impossible
+# jinja 2 is the templating engine that fastapi uses and comes preinstalled when we install fastapi with fastapi[standard]
+
+# More on Request
+# from fastapi import Request imports the Request class from FastAPI, which gives you direct access to the raw incoming HTTP request object
+# You use it when you need low-level details about the request that aren't automatically injected by FastAPI, such as
+'''
+Headers — request.headers
+Client IP — request.client.host
+Cookies — request.cookies
+Query params — request.query_params
+Request body (raw) — await request.body()
+Form data — await request.form()
+Request method — request.method
+URL — request.url
+'''
+# You use it by type-hinting a parameter in your route function
+'''
+E.g 
+
+from fastapi import FastAPI, Request
+
+app = FastAPI()
+
+@app.get("/items")
+async def read_items(request: Request):
+    client_ip = request.client.host
+    headers = request.headers
+    return {"client_ip": client_ip}
+'''
 
 posts: list[dict] = [
     {
@@ -22,14 +60,25 @@ app = FastAPI()  # Creating an instance of our app (this is our app object)
 # An app object is what we add all our routes to
 # FastAPI uses decorators for routes (similar to flask)
 
-@app.get("/", response_class=HTMLResponse) # The first argument passed here is the path corresponding to endpoint, second refers to response type
+@app.get("/") # The first argument passed here is the path corresponding to endpoint
 # FastAPI also allows us to stack decorators: this means that the same output will be rendered at the path of both decorators
-@app.get("/posts", response_class=HTMLResponse, include_in_schema=False) # This third argument will prevent the following route from appearing in documentation
-# This is primarily due to the fact that SwaggerUI docs are typically meant for API testing whcih in convention is supposed to only return JSON data
-# returning HTML data there isn't very productive
-def home(): # This is the function that gets decorated by @app.get
-  return f"<h1> {posts[0]['title']}</h1>" # Will render a HTML page at this route
+@app.get("/posts") 
+def home(request: Request): # This is the function that gets decorated by @app.get
+
+  # Below we return the template in our home.html file using our templates object
+  # The first argument is always request
+  # The second is the name of the file in your dictionary
+  # The third is a context dictionary consisting of key value pairs
+  # Every key value pair in the context dictionary acts as a variable available to us in the jinja template
+  # View the template to see jinja syntax
+  return templates.TemplateResponse(request, "home.html", {"posts": posts, "title": "Home"}) 
 
 @app.get("/api/posts")
 def get_posts():
   return posts # fastapi will automatically convert the list of dictionaries into a JSON array
+
+# NOTE ON TEMPLATE INHERITANCE: Allows us to create a oarent template with a default structure that child templates can inherit from
+# Child templates then will simply modify the parts that require modification
+# This is a very powerful feature of Jinja 2
+
+
