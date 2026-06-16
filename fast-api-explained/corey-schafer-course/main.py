@@ -2,6 +2,7 @@ from fastapi import FastAPI # importing the FastAPi class that is used to create
 from fastapi.responses import HTMLResponse # allows our server to return HTML rendered as a response
 from fastapi import Request # Jinja 2 templates require the Request object
 from fastapi.templating import Jinja2Templates # Importing Jinja2Templates
+from fastapi.staticfiles import StaticFiles # Used to serve static content
 
 # This creates a templates object that knows to look in our templates directory to find our templates files
 templates = Jinja2Templates(directory="templates") 
@@ -60,9 +61,19 @@ app = FastAPI()  # Creating an instance of our app (this is our app object)
 # An app object is what we add all our routes to
 # FastAPI uses decorators for routes (similar to flask)
 
-@app.get("/") # The first argument passed here is the path corresponding to endpoint
+# Here, we mount all the static files onto our app
+# A static file is any file that is served to the client exactly as-is, without any processing or modification by the server
+# Common examples are images and CSS style sheets
+# below method takes three arguments: 
+# first: url path where the static files will be accessible
+# second: StaticFiles instance that points to our static directory
+# third: a name that we can use to reference in our templates
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+@app.get("/", name="home") # The first argument passed here is the path corresponding to endpoint
 # FastAPI also allows us to stack decorators: this means that the same output will be rendered at the path of both decorators
-@app.get("/posts") 
+@app.get("/posts", name="posts") # The name argument gives a route an internal identifier that you can use to reference it elsewhere in your code — primarily with url_for
+# url_for generates a URL for a named route or static file dynamically, rather than hardcoding URLs as strings
 def home(request: Request): # This is the function that gets decorated by @app.get
 
   # Below we return the template in our home.html file using our templates object
