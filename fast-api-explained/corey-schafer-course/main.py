@@ -8,6 +8,7 @@ from fastapi.exceptions import RequestValidationError # Used for handling valida
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException # fastAPI is built on starlette
 # Useful when writing exception handlers, because FastAPI's exception handler listens for Starlette's version (which catches both since FastAPI's is a subclass)
+from schemas import PostCreate, PostResponse # Importing our Pydantic schemas that we will ad as response_models to our route decorators
 
 # This creates a templates object that knows to look in our templates directory to find our templates files
 templates = Jinja2Templates(directory="templates") 
@@ -105,14 +106,44 @@ def post_page(request: Request, post_id: int):
     
   raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
 
-@app.get("/api/posts")
+@app.get("/api/posts", response_model=list[PostResponse]) # Adding a response model will make fastapi automatically vaalidate the data to ensure it matches the type mentioned
 def get_posts():
   return posts # fastapi will automatically convert the list of dictionaries into a JSON array
+
+'''
+This is how decorated functions under @app.get know the type of data that is passed in as a parameter
+
+Is the argument name in the URL path?
+                                      /              \
+                                   [Yes]             [No]
+                                    /                  \
+                    It's a Path Parameter.       Is it a simple type (int, str) 
+                                                 or a Pydantic Model?
+                                                   /              \
+                                            [Simple Type]     [Pydantic Model]
+                                                 /                  \
+                                     It's a Query Parameter.     It's the Request Body.
+
+'''
+@app.get("/api/posts", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
+def create_post(post: PostCreate): # When fastapi sees a type hint, it automatically parses JSON, checks if they match up to the Pydantic schema and returns a 422 error if not
+  '''
+  Below, we are allowing a user to create posts
+  '''
+  new_id = max(p["id"] for p in posts) + 1 if posts else 1
+  new_post = {
+    "id": new_id,
+    "author": post.author,
+    "title": post.title,
+    "content": post.content,
+    "date_posted": "April 25, 2025", # harcoded date for now
+  }
+  posts.append(new_post)
 
 # Below we illustrate how to use path parameters in fastapi
 # Path parameters are a dynamic part of the url that changes based on the request made
 # fastapi will automatically recognize a path parameter when it is formatted in the way below with a type hint
-@app.get("/api/posts/{post_id}")
+@app.get("/api/posts/{post_id}", response_model=PostResponse)
 def get_post(post_id: int):
 
   # path parameter is automatically captured and passed as a variable into our function when function takes argument of the same name
