@@ -1,4 +1,5 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, EmailStr
+from datetime import datetime
 
 '''
 Pydantic is a data validation library that uses Python type hints. 
@@ -17,6 +18,27 @@ Pydantic also provides us with automatic generated documentation when used with 
 # Field allows us to add constraints like minimum and maximum length
 # ConfigDict is the modern Pydantic 2 way to configure models
 
+class UserBase(BaseModel):
+  
+  username: str = Field(min_length=1, max_length=50)
+  email: EmailStr = Field(max_length=100) # EmailStr validates whether or not this string is automatically in email format and we don't need a min length as EmailStr automatically checks if it is an empty string
+
+class UserCreate(UserBase):
+  pass
+
+class UserResponse(UserBase):
+  # In Pydantic 2, we configure models with ConfigDict
+  # from_attributes=True tells Pydantic that it can read data from objects with attributes and not just dictionaries.
+  # This is important when working with databases
+  # Right now our data is in dictionaries and we read like this: dictname['attr']
+  # But when using databases our data will be in objects and we need to read them with dot notation
+  # from_attribute=True essentially allows Pydantic to read data with . notation
+  model_config = ConfigDict(from_attributes=True)
+
+  id: int
+  img_file: str | None
+  image_path: str # See that this is a property in our model, however from_attributes=True in the configuration allows us to read from this as well
+
 class PostBase(BaseModel):
   '''
   This is our base model for posts used when we both create and display posts.
@@ -29,12 +51,12 @@ class PostBase(BaseModel):
   # This makes them mandatory
   title: str = Field(min_length=1, max_length=100)
   content: str = Field(min_length=1)
-  author: str = Field(min_lengt=1, max_length=50)
 
 class PostCreate(PostBase):
   # Empty class with just pass makes it essentially follow the same rules as PostBase
   # This is the class we will use when creating posts
-  pass
+  
+  user_id: int # TEMPORARY FOR TESTING
 
 class PostResponse(PostBase):
   # This is what we will return from the api and will contain fields that the client does not provide
@@ -48,5 +70,7 @@ class PostResponse(PostBase):
   model_config = ConfigDict(from_attributes=True)
 
   id: int
-  date_posted: str
+  user_id: int
+  date_posted: datetime
+  author: UserResponse
   
