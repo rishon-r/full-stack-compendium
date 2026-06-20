@@ -1,0 +1,102 @@
+I. Fast API project structure explained:
+
+1 - main.py:
+
+This is what contains your app instance. Smaller apps will have all your routes and API endpoints here as well.
+These will typically be created using @app.get and @app.post decorators + different ones for other HTTP methods.
+
+This is how decorated functions under @app.get know the type of data that is passed in as a parameter
+
+Is the argument name in the URL path?
+                                      /              \
+                                   [Yes]             [No]
+                                    /                  \
+                    It's a Path Parameter.       Is it a simple type (int, str) 
+                                                 or a Pydantic Model?
+                                                   /              \
+                                            [Simple Type]     [Pydantic Model]
+                                                 /                  \
+                                     It's a Query Parameter.     It's the Request Body
+
+In a larger app you will typically use different routers to organize all your different routes. 
+You will import these routers into this file and include them to your app instance. All your routers will typically be in
+a router folder as separate router files pertaining to different parts of your app
+
+app instancs are created as follows: app = FastAPI() and depend on the following input: from fastapi import FastAPI
+
+
+2 - schemas.py:
+
+This file contains all your Pydantic schemas. Pydantic is inclded in fastapi and a major advantage of fastapi is its strong
+integration with pydantic. Pydantic is a python library that takes python type hints and enforces them rather than using them simoply
+as documentation. Thes Pydantic schemas help define the general structure of data that can be sent and received by user at a 
+particular endpoint. We can include a response_model=ModelName as a keyword argument in an endpoint decorator in main. This will 
+result in fastapi throwing an error when the data received is not of the form (types) expected.
+
+The following imports are typical in a Pydantic schemas file:
+
+from pydantic import ConfigDict, BaseModel, Field
+
+Every Pydantic Schema we define is typically a class and inherits BaseModel. When it inherits BaseModel this lets pydantic know
+that the following class is a Pydantic schema.  
+
+Field allows us to enforce constraints like minimum length and maximum length on data.
+
+ConfigDict allows us to configure models such that they can read data from object attributes with dot notation 
+instead of simply being able to read from dictionaries
+
+This is specifically so a Pydantic schema can be built directly from a SQLAlchemy model instance
+(which has .attribute access, not dict-like ["key"] access) — e.g. when you return an ORM object from an endpoint
+and FastAPI needs to convert it to your response schema. 
+In Pydantic v1 this was called orm_mode = True; v2 renamed it from_attributes. 
+
+We will then import all these Pydantic schemas into main in order to use them as response models and request body accept types
+
+3 - database.py:
+
+We use databses when we need persistent data (i.e data that exists in our system even when the app is restarted or loses power)
+Typically when using fastapi, instead of dealing with a database directly we use something known as an ORM (Onject Relational Mapper)
+An object relational mapper is software that maps classes in our code to tables in our database and that allows us to query the tables in
+our database simply by using python instead of SQL
+
+sqlalchemy is the recommended ORM for dealing with fastapi and the one I will be using although there is a strong argument
+to be made for using SQLModel instead as well.
+
+To use a database we need two files: a database.py and a models.py file. We will detail the uses of a databse.py file below:
+
+The databse file is used to create connection to the database and a session factory. It also contains a function that 
+should yield database sessions to any endpoint that may require it
+
+What is a session? - When working with a databse via an ORM, we work with it in sessions. Sessions can simply be viewed
+as periods of time within which we are working with a database. Sessions need to be created and closed so that we work with the database
+in a restricted and protected fashion. 
+
+A session factory can be broadly viewed as an object that creates sessions
+
+Typical imports for this file inlude:
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
+
+create_engine() establishes our connection to the database, sessionmaker is the sessionfactory and 
+DeclarativeBase is the base class that all our model classes in models.py will have to inherit from in order to be considered tables
+
+In the database.py file we create a class called Base that inherits from DeclarativeBae and is empty (contains only pass)
+such that we can import this into our models and have every class inherit from this itself. This is simply convention.
+
+Then we have a function called get_db defined here that uses a generator and a context manager to yield databse sessions to
+endpoints in main. This is important (read database.py file for explanation in comments) and the function ends up being imported in main.py.
+
+4 - models.py:
+
+This is the file we use to create all our databse tables. We import the Base class from databases.py that inherits from DeclarativeBase
+and make all the classes here inherit from Base
+
+Then each class is treated as a table and we create columns and relationships between them. This file typically includes a lot of imports for
+Column types and Relationships (like ForeignKey)
+
+Example of imports:
+
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text # Here we import some column types and relationships (ForeignKey)
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+# Mapped[...] is a type hint tool that serves two primary purposes: it brings full type safety and auto-complete to your IDE, and it standardizes how SQLAlchemy builds your database columns.
