@@ -28,7 +28,7 @@ templates = Jinja2Templates(directory="templates")
 # Templates also allow us to write our html in HTML files rather than simply writing our HTML in Python strings
 # For larger projects, writing our HTML in Python strings will be almost impossible
 # jinja 2 is the templating engine that fastapi uses and comes preinstalled when we install fastapi with fastapi[standard]
-# NOTE ON TEMPLATE INHERITANCE: Allows us to create a oarent template with a default structure that child templates can inherit from
+# NOTE ON TEMPLATE INHERITANCE: Allows us to create a parent template with a default structure that child templates can inherit from
 # Child templates then will simply modify the parts that require modification
 # This is a very powerful feature of Jinja 2
 
@@ -78,6 +78,8 @@ app.mount("/media", StaticFiles(directory="media"), name="media")
 
 @app.get("/", include_in_schema= False, name="home") # The first argument passed here is the path corresponding to endpoint
 # FastAPI also allows us to stack decorators: this means that the same output will be rendered at the path of both decorators
+# include_in_schema=False means that these endpoints won't be available for us to test in the SwaggerUI docs
+# We generally do this for files that generate frontend as we only want to test the API routes in the SwaggerUI docs
 @app.get("/posts", include_in_schema=False, name="posts") # The name argument gives a route an internal identifier that you can use to reference it elsewhere in your code — primarily with url_for
 # url_for generates a URL for a named route or static file dynamically, rather than hardcoding URLs as strings
 def home(request: Request, db: Annotated[Session, Depends(get_db)]):
@@ -137,8 +139,10 @@ def user_posts_page(
         {"posts": posts, "user": user, "title": f"{user.username}'s Posts"},
     )
     
+# API ROUTES 
 
-@app.post("api/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+
+@app.post("/api/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED) # here status-code dictates the status code we want to return in the case of a success (by default it's 200)
 def create_user(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
   # What this line does: db: Annotated[Session, Depends(get_db)]
   # It manages the database lifecycle using Dependency Injection
@@ -169,7 +173,7 @@ def create_user(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
       detail="Email already exists"
     )
   
-  new_user= models.User(username=user.username, emil=user.email) # Creating row in User database table
+  new_user= models.User(username=user.username, email=user.email) # Creating row in User database table
 
   db.add(new_user) # Stages insert
   db.commit() # Commiting to commit changes to database (executes insert and saves to database)
@@ -180,8 +184,8 @@ def create_user(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
 @app.get("/api/users/{user_id}", response_model=UserResponse)
 def get_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
 
-  result = select(models.user).where(models.User.id== user_id)
-  existing_user = result.sclars.first()
+  result = db.execute(select(models.User).where(models.User.id== user_id))
+  existing_user = result.scalars().first()
 
   if existing_user:
     return existing_user
@@ -309,7 +313,7 @@ def validation_exception_handler(request: Request, exception: RequestValidationE
    # API routes should return JSON responses, not HTML pages
    if request.url.path.startswith("/api"):
     return JSONResponse(
-      status_code = status.HTTP_422_UNPROCESSABLE_CONTENT, # 422 means the server understood the request but couldn't process it due to invalid data
+      status_code = status.HTTP_422_UNPROCESSABLE_ENTITY, # 422 means the server understood the request but couldn't process it due to invalid data
       content= {"detail": exception.errors()} # exception.errors() returns a list of validation errors describing exactly what went wrong
     )
    
@@ -318,9 +322,9 @@ def validation_exception_handler(request: Request, exception: RequestValidationE
      request,
      "error.html", # The template to render
      {
-       "status_code": status.HTTP_422_UNPROCESSABLE_CONTENT,
+       "status_code": status.HTTP_422_UNPROCESSABLE_ENTITY,
        "title": status.HTTP_422_UNPROCESSABLE_ENTITY, # Used as the page title
        "message": "Invalid request. Please check your input and try again" # Generic message for the user since validation error details are not user friendly
      },
-     status_code = status.HTTP_422_UNPROCESSABLE_CONTENT # Ensures the HTTP response itself carries the correct status code, not 200
+     status_code = status.HTTP_422_UNPROCESSABLE_ENTITY # Ensures the HTTP response itself carries the correct status code, not 200
    )
