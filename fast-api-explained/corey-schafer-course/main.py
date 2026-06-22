@@ -8,7 +8,6 @@ from fastapi import Depends # Used for Dependency Injection
 from fastapi.exceptions import RequestValidationError # Used for handling validation error (e.g when unexpected type is passed)
 from starlette.exceptions import HTTPException as StarletteHTTPException # fastAPI is built on starlette
 # Useful when writing exception handlers, because FastAPI's exception handler listens for Starlette's version (which catches both since FastAPI's is a subclass)
-from schemas import PostCreate, PostResponse, UserResponse, UserCreate, PostUpdate, UserUpdate # Importing our Pydantic schemas that we will ad as response_models to our route decorators
 from typing import Annotated
 
 from sqlalchemy import select # This is for querying
@@ -21,6 +20,9 @@ from contextlib import asynccontextmanager
 from fastapi.exception_handlers import http_exception_handler, request_validation_exception_handler
 from sqlalchemy.orm import selectinload
 
+# IMPORTING ROUTERS
+from routers import users, posts
+
 @asynccontextmanager # Turns the below into an async context manager
 async def lifespan(_app: FastAPI):
     # Startup: all the code before the yield runs before startup
@@ -32,6 +34,13 @@ async def lifespan(_app: FastAPI):
     await engine.dispose()
 
 
+
+
+app = FastAPI(lifespan=lifespan)  # Creating an instance of our app (this is our app object)
+# An app object is what we add all our routes to
+# FastAPI uses decorators for routes (similar to flask)
+# lifespan refers to the synccontext manager we use for startup and teardown that is defined above
+
 # This creates a templates object that knows to look in our templates directory to find our templates files
 templates = Jinja2Templates(directory="templates") 
 # JINJA 2 TEMPLATES: Templates allow us to serve HTML pages to our users while still maintaining JSON endpoints for our backend
@@ -42,6 +51,11 @@ templates = Jinja2Templates(directory="templates")
 # NOTE ON TEMPLATE INHERITANCE: Allows us to create a parent template with a default structure that child templates can inherit from
 # Child templates then will simply modify the parts that require modification
 # This is a very powerful feature of Jinja 2
+
+# INCLUDING ROUTERS
+# prefix parameter adds given string as prefix to URLs of all routes in the router
+app.include_router(posts.router, prefix="/api/posts", tags=["posts"])
+app.include_router(users.router, prefix="/api/users", tags=["users"])
 
 # More on Request
 # from fastapi import Request imports the Request class from FastAPI, which gives you direct access to the raw incoming HTTP request object
@@ -71,11 +85,6 @@ async def read_items(request: Request):
     return {"client_ip": client_ip}
 '''
 
-
-app = FastAPI(lifespan=lifespan)  # Creating an instance of our app (this is our app object)
-# An app object is what we add all our routes to
-# FastAPI uses decorators for routes (similar to flask)
-# lifespan refers to the synccontext manager we use for startup and teardown that is defined above
 '''
 SYNCHRONOUS vs. ASYNCHRONOUS FastAPI
 
@@ -90,6 +99,23 @@ which is not allowed. The solution is eager loading with selectinload that we ha
 
 So in short, any part that has lazy loading of relationshps must be replaced with eagerloading via selectinload
 
+
+'''
+
+
+'''
+This is how decorated functions under @app.get know the type of data that is passed in as a parameter
+
+Is the argument name in the URL path?
+                                      /              \
+                                   [Yes]             [No]
+                                    /                  \
+                    It's a Path Parameter.       Is it a simple type (int, str) 
+                                                 or a Pydantic Model?
+                                                   /              \
+                                            [Simple Type]     [Pydantic Model]
+                                                 /                  \
+                                     It's a Query Parameter.     It's the Request Body.
 
 '''
 
@@ -184,295 +210,6 @@ async def user_posts_page(
         "user_posts.html",
         {"posts": posts, "user": user, "title": f"{user.username}'s Posts"},
     )
-    
-# API ROUTES 
-
-
-@app.post("/api/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED) # here status-code dictates the status code we want to return in the case of a success (by default it's 200)
-async def create_user(user: UserCreate, db: Annotated[AsyncSession, Depends(get_db)]):
-  # What this line does: db: Annotated[Session, Depends(get_db)]
-  # It manages the database lifecycle using Dependency Injection
-  # db -> The local variable name you will use inside this function to talk to your database.
-  # Session' -> The Python type hint. It tells your IDE that 'db' is a SQLAlchemy database session, giving you full auto-complete for database methods like 'db.add()', 'db.commit()', and 'db.query()'
-  # Depends(get_db)' -> The FastAPI dependency magic. It tells FastAPI: "Before running this route, go run the 'get_db()' function we wrote earlier, open a database connection, and inject that
-  # active connection right here into the 'db' variable." Once the route finishes, 'Depends' automatically closes that connection for you
-  # 'Annotated[...]' -> A standard Python feature used to cleanly bundle the structural type ('Session')
-  # together with FastAPI's metadata instructions ('Depends(get_db)') without breaking standard Python syntax.
-  
-  # Checking if user with given username exists
-  result = await db.execute(
-      select(models.User).where(models.User.username == user.username)
-      )
-  existing_user = result.scalars().first()
-
-  if existing_user: # raising exception if the user already exists
-    raise HTTPException(
-      status_code=status.HTTP_400_BAD_REQUEST,
-      detail="Username already exists"
-    )
-  
-  # Checking if user with given email exists
-  result = await db.execute(select(models.User).where(models.User.email == user.email))
-  existing_email = result.scalars().first()
-
-  if existing_email: # raising exception if the user already exists
-    raise HTTPException(
-      status_code=status.HTTP_400_BAD_REQUEST,
-      detail="Email already exists"
-    )
-  
-  new_user= models.User(username=user.username, email=user.email) # Creating row in User database table
-
-  db.add(new_user) # Stages insert. add does not get an await as it simply stages the new user. commit is the command that actually pushes changes to the database
-  await db.commit() # Commiting to commit changes to database (executes insert and saves to database)
-  await db.refresh(new_user) # Reloads the object from the database
-
-  return new_user # Pydantic will automatically convert this to a UserResponse
-
-@app.get("/api/users/{user_id}", response_model=UserResponse)
-async def get_user(user_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
-
-  result = await db.execute(select(models.User).where(models.User.id== user_id))
-  existing_user = result.scalars().first()
-
-  if existing_user:
-    return existing_user
-  
-  raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User does not exist")
-
-@app.get("/api/users/{user_id}/posts", response_model=list[PostResponse])
-async def get_user_posts(user_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
-    '''
-    Returning a particular user's posts
-    '''
-    result = await db.execute(select(models.User).where(models.User.id == user_id)) # First we query to find user with appropriate user id
-    user = result.scalars().first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
-
-    result = await db.execute(
-        select(models.Post)
-        .options(selectinload(models.Post.author)) # We need options here as our response_model Postresponse requires it
-        .where(models.Post.user_id == user_id)) # Then, we query and retrieve all posts that have the given user_id as a foreign key
-    posts = result.scalars().all()
-    return posts
-
-# PATCH style update: Partial Update
-@app.patch("/api/users/{user_id}", response_model=UserResponse)
-async def update_user(
-    user_id: int,
-    user_update: UserUpdate,
-    db: Annotated[AsyncSession, Depends(get_db)],
-):
-    result = await db.execute(select(models.User).where(models.User.id == user_id))
-    user = result.scalars().first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
-
-    if user_update.username is not None and user_update.username != user.username:
-        result = await db.execute(
-            select(models.User).where(models.User.username == user_update.username),
-        )
-        existing_user = result.scalars().first()
-        if existing_user:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Username already exists",
-            )
-
-    if user_update.email is not None and user_update.email != user.email:
-        result = await db.execute(
-            select(models.User).where(models.User.email == user_update.email),
-        )
-        existing_email = result.scalars().first()
-        if existing_email:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered",
-            )
-
-    if user_update.username is not None:
-        user.username = user_update.username
-    if user_update.email is not None:
-        user.email = user_update.email
-    if user_update.image_file is not None:
-        user.image_file = user_update.image_file
-
-    await db.commit()
-    await db.refresh(user)
-    return user
-
-
-@app.delete("/api/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_user(user_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
-    result = await db.execute(select(models.User).where(models.User.id == user_id))
-    user = result.scalars().first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
-
-    await db.delete(user) # delete operation needs to interact with the session in a manner that needs await
-    await db.commit()
-
-@app.get("/api/posts", response_model=list[PostResponse]) # Adding a response model will make fastapi automatically validate the data to ensure it matches the type mentioned
-async def get_posts(db: Annotated[AsyncSession, Depends(get_db)]):
-    result = await db.execute(
-        select(models.Post)
-        .options(selectinload(models.Post.author))
-    )
-    posts = result.scalars().all()
-    return posts # fastapi will automatically convert this into a JSON array
-
-
-
-'''
-This is how decorated functions under @app.get know the type of data that is passed in as a parameter
-
-Is the argument name in the URL path?
-                                      /              \
-                                   [Yes]             [No]
-                                    /                  \
-                    It's a Path Parameter.       Is it a simple type (int, str) 
-                                                 or a Pydantic Model?
-                                                   /              \
-                                            [Simple Type]     [Pydantic Model]
-                                                 /                  \
-                                     It's a Query Parameter.     It's the Request Body.
-
-'''
-@app.post(
-    "/api/posts",
-    response_model=PostResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-async def create_post(post: PostCreate, db: Annotated[AsyncSession, Depends(get_db)]): # When fastapi sees a type hint, it automatically parses JSON, checks if they match up to the Pydantic schema and returns a 422 error if not
-    result = await db.execute(select(models.User).where(models.User.id == post.user_id))
-    user = result.scalars().first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
-
-    new_post = models.Post(
-        title=post.title,
-        content=post.content,
-        user_id=post.user_id,
-    )
-    db.add(new_post)
-    await db.commit()
-    await db.refresh(new_post)
-    return new_post
-
-# Below we illustrate how to use path parameters in fastapi
-# Path parameters are a dynamic part of the url that changes based on the request made
-# fastapi will automatically recognize a path parameter when it is formatted in the way below with a type hint
-@app.get("/api/posts/{post_id}", response_model=PostResponse)
-async def get_post(post_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
-    
-    # path parameter is automatically captured and passed as a variable into our function when function takes argument of the same name
-    # and when it's type is type hinted accurately
-    # The type hint is important as fastapi automatically uses that to validate requests
-    result = await db.execute(
-        select(models.Post)
-        .options(selectinload(models.Post.author))
-        .where(models.Post.id == post_id)
-        )
-    post = result.scalars().first()
-    if post:
-        return post
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found") # Raising HTTP Exception with status code 404 meaning resource not found
-
-# PUT style update: Here we use the PostCreate itself as input as it makes all fields required which we need for a complete update
-@app.put("/api/posts/{post_id}", response_model=PostResponse)
-async def update_post_full(post_id: int, post_data: PostCreate, db: Annotated[AsyncSession, Depends(get_db)]):
-    
-    result = await db.execute(
-     select(models.Post)
-     .where(models.Post.id == post_id)
-     )
-    post = result.scalars().first()
-    if not post: # Raising HTTP exception if the post to be updated does not exist
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
-    
-    if post_data.user_id != post.user_id: # Checking if user id pertaining to input post is the same as user_id of post given in path parameter
-        result = await db.execute(
-            select(models.User).where(models.User.id == post_data.user_id), # Checking if user with same user id as that of post sent in JSON body exists
-        )
-        user = result.scalars().first() 
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
-            )
-
-    # Updating all major fields
-    post.title = post_data.title
-    post.content = post_data.content
-    post.user_id = post_data.user_id
-
-    await db.commit() # commiting changes
-    # db here is an async SQLAlchemy session.
-    #  refresh() re-fetches the current state of post (an ORM model instance) from the database,
-    #  overwriting whatever values are currently sitting in memory on that object
-    # By default, refresh() reloads all columns on the object. The attribute_names parameter narrows this down — 
-    # it tells SQLAlchemy to refresh only the listed attribute(s), rather than every column
-    # After commit(), SQLAlchemy often expires the object's attributes (so they'll be lazily reloaded on next access).
-    #  But lazy-loading a relationship with a normal attribute access (post.author) would 
-    # require an implicit synchronous-style DB query — which doesn't work well in async SQLAlchemy, 
-    # since lazy loads aren't awaited automatically and will raise an error (MissingGreenlet / "greenlet_spawn has not been called") if you try
-    await db.refresh(post, attribute_names=["author"]) 
-    return post
-
-# below is the patch endpoint, used for partial updates
-# See that we pass PostUpdate as the input schema instead of PostCreate
-@app.patch("/api/posts/{post_id}", response_model=PostResponse)
-async def update_post_partial(
-    post_id: int,
-    post_data: PostUpdate,
-    db: Annotated[AsyncSession, Depends(get_db)],
-):
-    result = await db.execute(
-        select(models.Post)
-        .where(models.Post.id == post_id)
-        )
-    post = result.scalars().first()
-    if not post:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
-        )
-
-    update_data = post_data.model_dump(exclude_unset=True) # model.dump() converts a Pydantic model into a plain Python dictionary
-    # exclude_unset is very important for our patch here
-    # if exclude_unset was not set to True, Python would include every field in the model in the dictonary
-    # now, since exclude_unset is set to True, only the fields that the caller actually set in the request are included in the resulting dictionary
-    for field, value in update_data.items():
-        setattr(post, field, value) # setattr() is a built-in Python function that lets you set an attribute on an object dynamically, using a string for the attribute name instead of writing it directly in code
-        # It's the dynamic equivalent of writing object.attribute_name = value. The difference is that with setattr(), the attribute name can be a variable — a string computed at runtime — rather than something hardcoded
-
-    await db.commit()
-    await db.refresh(post, attribute_names=["author"])
-    return post
-  
-@app.delete("/api/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_post(post_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
-    result = await db.execute(select(models.Post).where(models.Post.id == post_id))
-    post = result.scalars().first()
-    if not post:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
-        )
-
-    await db.delete(post)
-    await db.commit()
 
 # This is a global exception handler that catches all HTTP exceptions across the entire app
 # StarletteHTTPException is the base class for all HTTP exceptions, so this catches everything
