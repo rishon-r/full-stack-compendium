@@ -39,6 +39,20 @@ class UserResponse(UserBase):
   image_file: str | None
   image_path: str # See that this is a property in our model, however from_attributes=True in the configuration allows us to read from this as well
 
+# You can generally update resources via two HTTP Methods: PUT and PATCH
+# PUT is used to make complete updates: this involves updating every field of a resource
+# PATCH is used for partial updates: this involves updating only select fields of a resource
+# In APIs it is generally suggested to use PATCH as we don't want our users to resend all the fields
+class UserUpdate(BaseModel):
+
+  # PATCH style implementation, see that None values are permitted for bothe the fields
+  # We can simply reuse PostCreate for a PUT style update as it already requires all the fields
+  
+  username: str | None = Field(default=None, min_length=1, max_length=50)
+  email: EmailStr | None = Field(default=None, max_length=100)
+  image_file: str | None = Field(default=None, min_length=1, max_length=200)
+
+
 class PostBase(BaseModel):
   '''
   This is our base model for posts used when we both create and display posts.
@@ -57,6 +71,18 @@ class PostCreate(PostBase):
   # This is the class we will use when creating posts
   
   user_id: int # TEMPORARY FOR TESTING
+
+# You can generally update resources via two HTTP Methods: PUT and PATCH
+# PUT is used to make complete updates: this involves updating every field of a resource
+# PATCH is used for partial updates: this involves updating only select fields of a resource
+# In APIs it is generally suggested to use PATCH as we don't want our users to resend all the fields
+class PostUpdate(BaseModel):
+
+  # PATCH style implementation, see that None values are permitted for bothe the fields
+  # We can simply reuse PostCreate for a PUT style update as it already requires all the fields
+  
+  title: str | None  = Field(default=None, min_length=1, max_length=100)
+  content: str | None = Field(default=None, min_length=1)
 
 class PostResponse(PostBase):
   # This is what we will return from the api and will contain fields that the client does not provide

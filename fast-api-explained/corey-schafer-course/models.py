@@ -42,7 +42,7 @@ class User(Base):
     # 7. 'posts' sets up an ORM "Relationship" between the User model and the Post model.
     # This is a Python-only convenience tool (not a database column). It lets you type 'user.posts' to instantly get a list of all posts written by this user.
     # 'back_populates="author"' creates a bidirectional link, meaning the Post model must have a matching 'author' relationship pointing back to this User.
-    posts: Mapped[list[Post]] = relationship(back_populates="author")
+    posts: Mapped[list[Post]] = relationship(back_populates="author", cascade="all, delete-orphan") # Cascade= "all, delete-orphan" means that when a user is deleted, so should all their posts
 
     # 8. The '@property' decorator turns this standard Python method into a read-only property attribute.
     # It allows you to access this logic like a normal variable (e.g., 'user.image_path') instead of calling it like a function ('user.image_path()').

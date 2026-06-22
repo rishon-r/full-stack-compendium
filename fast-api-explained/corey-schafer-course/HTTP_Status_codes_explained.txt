@@ -1,0 +1,13 @@
+
+Successful Status codes:
+
+200 OK - Successful GET, PUT or PATCH
+201 CREATED- Successful POST
+204 NO CONTENT- Successful DELETE
+
+Client Error status codes:
+
+400 BAD REQUEST - Duplicate email/username when creating user
+404 NOT FOUND - resource doesn't exist
+422 UNPROCESSABLE ENTITY - Validation Error
+
