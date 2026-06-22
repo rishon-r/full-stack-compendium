@@ -6,20 +6,31 @@ from fastapi.staticfiles import StaticFiles # Used to serve static content
 from fastapi import HTTPException, status # Used to raise appropriate HTTP exceptions, status is used to indicate appropriate status code
 from fastapi import Depends # Used for Dependency Injection
 from fastapi.exceptions import RequestValidationError # Used for handling validation error (e.g when unexpected type is passed)
-from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException # fastAPI is built on starlette
 # Useful when writing exception handlers, because FastAPI's exception handler listens for Starlette's version (which catches both since FastAPI's is a subclass)
 from schemas import PostCreate, PostResponse, UserResponse, UserCreate, PostUpdate, UserUpdate # Importing our Pydantic schemas that we will ad as response_models to our route decorators
 from typing import Annotated
 
 from sqlalchemy import select # This is for querying
-from sqlalchemy.orm import Session # This is for type hints so that our orm knows what type our db_session that we are injecting is
+from sqlalchemy.ext.asyncio import AsyncSession # This is for type hints so that our orm knows what type our db session that we are injecting is
 
 from database import Base, engine, get_db
 import models
 
-Base.metadata.create_all(bind=engine) # Looks at all of our models that inherit from Base and creates the tables if they don't already exist
-# This is an idmepotent command: means that it is safe to run multiple times and that if the data already exists it doesn't interfere with it
+from contextlib import asynccontextmanager
+from fastapi.exception_handlers import http_exception_handler, request_validation_exception_handler
+from sqlalchemy.orm import selectinload
+
+@asynccontextmanager # Turns the below into an async context manager
+async def lifespan(_app: FastAPI):
+    # Startup: all the code before the yield runs before startup
+    async with engine.begin() as conn: # engine.begin() is used to create an async connection
+        await conn.run_sync(Base.metadata.create_all) # run_sync allows us to run the synchronous create_all method that creates all our tables
+        # Base.metadata.create_all is also idempotent: it can be run multiple times safely
+    yield # This is where our application actually begins running
+    # Shutdown: Here, we dispose of the engine properly
+    await engine.dispose()
+
 
 # This creates a templates object that knows to look in our templates directory to find our templates files
 templates = Jinja2Templates(directory="templates") 
@@ -61,9 +72,26 @@ async def read_items(request: Request):
 '''
 
 
-app = FastAPI()  # Creating an instance of our app (this is our app object)
+app = FastAPI(lifespan=lifespan)  # Creating an instance of our app (this is our app object)
 # An app object is what we add all our routes to
 # FastAPI uses decorators for routes (similar to flask)
+# lifespan refers to the synccontext manager we use for startup and teardown that is defined above
+'''
+SYNCHRONOUS vs. ASYNCHRONOUS FastAPI
+
+In Synchronous SQLAlchemy, lazy loading just works.
+E.g In synchronous SQLAlchemy, if you have post object and want to access its author, you can do so with post.author
+and SQLAlchemy will automatically run a query to obtain the author of that post. This is a relationship and our templates
+can also access posts.author.username. This works and is known as LAZY LOADING
+
+In Async SQLAlchemy however, Lazy loading is not supported. If you try to access post.author without loading it,
+you get an error message. This happens because lazy loading requires running a synchronous query in an asynchronous context,
+which is not allowed. The solution is eager loading with selectinload that we have imported from sqlalchemy.orm
+
+So in short, any part that has lazy loading of relationshps must be replaced with eagerloading via selectinload
+
+
+'''
 
 # Here, we mount all the static files onto our app
 # A static file is any file that is served to the client exactly as-is, without any processing or modification by the server
@@ -82,8 +110,13 @@ app.mount("/media", StaticFiles(directory="media"), name="media")
 # We generally do this for files that generate frontend as we only want to test the API routes in the SwaggerUI docs
 @app.get("/posts", include_in_schema=False, name="posts") # The name argument gives a route an internal identifier that you can use to reference it elsewhere in your code — primarily with url_for
 # url_for generates a URL for a named route or static file dynamically, rather than hardcoding URLs as strings
-def home(request: Request, db: Annotated[Session, Depends(get_db)]):
-    result = db.execute(select(models.Post))
+async def home(request: Request, db: Annotated[AsyncSession, Depends(get_db)]):
+    result = await db.execute(
+        select(models.Post).options(selectinload(models.Post.author)), # Eager loading for an async function
+        # Now, when we iterate through posts in our templates and access post.author, it is going to work
+        # As we already loaded in that data via eager loading above
+
+      )
     posts = result.scalars().all()
     # Below we return the template in our home.html file using our templates object
     # The first argument is always request
@@ -99,11 +132,16 @@ def home(request: Request, db: Annotated[Session, Depends(get_db)]):
 
 
 @app.get("/posts/{post_id}", include_in_schema=False)
-def post_page(request: Request, post_id: int, db: Annotated[Session, Depends(get_db)]):
+async def post_page(request: Request, post_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
     # path parameter is automatically captured and passed as a variable into our function when function takes argument of the same name
     # and when it's type is type hinted accurately
     # The type hint is important as fastapi automatically uses that to validate requests
-    result = db.execute(select(models.Post).where(models.Post.id == post_id))
+    result = await db.execute(
+        select(models.Post)
+        .options(selectinload(models.Post.author))
+        .where(models.Post.id == post_id)
+        )
+        
     post = result.scalars().first()
     if post:
         title = post.title[:50]
@@ -115,15 +153,19 @@ def post_page(request: Request, post_id: int, db: Annotated[Session, Depends(get
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
 
 @app.get("/users/{user_id}/posts", include_in_schema=False, name="user_posts")
-def user_posts_page(
+async def user_posts_page(
     request: Request,
     user_id: int,
-    db: Annotated[Session, Depends(get_db)],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
     '''
     Returns all posts of a particular user
     '''
-    result = db.execute(select(models.User).where(models.User.id == user_id))
+    result = await db.execute(
+        select(models.User).where(models.User.id == user_id) 
+        # This does not need eager loading with selectinload
+        # This is because none of our templates are using posts.author
+        )
     user = result.scalars().first()
     if not user:
         raise HTTPException(
@@ -131,7 +173,11 @@ def user_posts_page(
             detail="User not found",
         )
 
-    result = db.execute(select(models.Post).where(models.Post.user_id == user_id))
+    result = await db.execute(
+        select(models.Post)
+        .options(selectinload(models.Post.author))
+        .where(models.Post.user_id == user_id)
+        )
     posts = result.scalars().all()
     return templates.TemplateResponse(
         request,
@@ -143,7 +189,7 @@ def user_posts_page(
 
 
 @app.post("/api/users", response_model=UserResponse, status_code=status.HTTP_201_CREATED) # here status-code dictates the status code we want to return in the case of a success (by default it's 200)
-def create_user(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
+async def create_user(user: UserCreate, db: Annotated[AsyncSession, Depends(get_db)]):
   # What this line does: db: Annotated[Session, Depends(get_db)]
   # It manages the database lifecycle using Dependency Injection
   # db -> The local variable name you will use inside this function to talk to your database.
@@ -154,7 +200,9 @@ def create_user(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
   # together with FastAPI's metadata instructions ('Depends(get_db)') without breaking standard Python syntax.
   
   # Checking if user with given username exists
-  result = db.execute(select(models.User).where(models.User.username == user.username))
+  result = await db.execute(
+      select(models.User).where(models.User.username == user.username)
+      )
   existing_user = result.scalars().first()
 
   if existing_user: # raising exception if the user already exists
@@ -164,7 +212,7 @@ def create_user(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
     )
   
   # Checking if user with given email exists
-  result = db.execute(select(models.User).where(models.User.email == user.email))
+  result = await db.execute(select(models.User).where(models.User.email == user.email))
   existing_email = result.scalars().first()
 
   if existing_email: # raising exception if the user already exists
@@ -175,16 +223,16 @@ def create_user(user: UserCreate, db: Annotated[Session, Depends(get_db)]):
   
   new_user= models.User(username=user.username, email=user.email) # Creating row in User database table
 
-  db.add(new_user) # Stages insert
-  db.commit() # Commiting to commit changes to database (executes insert and saves to database)
-  db.refresh(new_user) # Reloads the object from the database
+  db.add(new_user) # Stages insert. add does not get an await as it simply stages the new user. commit is the command that actually pushes changes to the database
+  await db.commit() # Commiting to commit changes to database (executes insert and saves to database)
+  await db.refresh(new_user) # Reloads the object from the database
 
   return new_user # Pydantic will automatically convert this to a UserResponse
 
 @app.get("/api/users/{user_id}", response_model=UserResponse)
-def get_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
+async def get_user(user_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
 
-  result = db.execute(select(models.User).where(models.User.id== user_id))
+  result = await db.execute(select(models.User).where(models.User.id== user_id))
   existing_user = result.scalars().first()
 
   if existing_user:
@@ -193,11 +241,11 @@ def get_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
   raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User does not exist")
 
 @app.get("/api/users/{user_id}/posts", response_model=list[PostResponse])
-def get_user_posts(user_id: int, db: Annotated[Session, Depends(get_db)]):
+async def get_user_posts(user_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
     '''
     Returning a particular user's posts
     '''
-    result = db.execute(select(models.User).where(models.User.id == user_id)) # First we query to find user with appropriate user id
+    result = await db.execute(select(models.User).where(models.User.id == user_id)) # First we query to find user with appropriate user id
     user = result.scalars().first()
     if not user:
         raise HTTPException(
@@ -205,18 +253,21 @@ def get_user_posts(user_id: int, db: Annotated[Session, Depends(get_db)]):
             detail="User not found",
         )
 
-    result = db.execute(select(models.Post).where(models.Post.user_id == user_id)) # Then, we query and retrieve all posts that have the given user_id as a foreign key
+    result = await db.execute(
+        select(models.Post)
+        .options(selectinload(models.Post.author)) # We need options here as our response_model Postresponse requires it
+        .where(models.Post.user_id == user_id)) # Then, we query and retrieve all posts that have the given user_id as a foreign key
     posts = result.scalars().all()
     return posts
 
 # PATCH style update: Partial Update
 @app.patch("/api/users/{user_id}", response_model=UserResponse)
-def update_user(
+async def update_user(
     user_id: int,
     user_update: UserUpdate,
-    db: Annotated[Session, Depends(get_db)],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    result = db.execute(select(models.User).where(models.User.id == user_id))
+    result = await db.execute(select(models.User).where(models.User.id == user_id))
     user = result.scalars().first()
     if not user:
         raise HTTPException(
@@ -225,7 +276,7 @@ def update_user(
         )
 
     if user_update.username is not None and user_update.username != user.username:
-        result = db.execute(
+        result = await db.execute(
             select(models.User).where(models.User.username == user_update.username),
         )
         existing_user = result.scalars().first()
@@ -236,7 +287,7 @@ def update_user(
             )
 
     if user_update.email is not None and user_update.email != user.email:
-        result = db.execute(
+        result = await db.execute(
             select(models.User).where(models.User.email == user_update.email),
         )
         existing_email = result.scalars().first()
@@ -253,14 +304,14 @@ def update_user(
     if user_update.image_file is not None:
         user.image_file = user_update.image_file
 
-    db.commit()
-    db.refresh(user)
+    await db.commit()
+    await db.refresh(user)
     return user
 
 
 @app.delete("/api/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
-    result = db.execute(select(models.User).where(models.User.id == user_id))
+async def delete_user(user_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
+    result = await db.execute(select(models.User).where(models.User.id == user_id))
     user = result.scalars().first()
     if not user:
         raise HTTPException(
@@ -268,12 +319,15 @@ def delete_user(user_id: int, db: Annotated[Session, Depends(get_db)]):
             detail="User not found",
         )
 
-    db.delete(user)
-    db.commit()
+    await db.delete(user) # delete operation needs to interact with the session in a manner that needs await
+    await db.commit()
 
 @app.get("/api/posts", response_model=list[PostResponse]) # Adding a response model will make fastapi automatically validate the data to ensure it matches the type mentioned
-def get_posts(db: Annotated[Session, Depends(get_db)]):
-    result = db.execute(select(models.Post))
+async def get_posts(db: Annotated[AsyncSession, Depends(get_db)]):
+    result = await db.execute(
+        select(models.Post)
+        .options(selectinload(models.Post.author))
+    )
     posts = result.scalars().all()
     return posts # fastapi will automatically convert this into a JSON array
 
@@ -299,8 +353,8 @@ Is the argument name in the URL path?
     response_model=PostResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def create_post(post: PostCreate, db: Annotated[Session, Depends(get_db)]): # When fastapi sees a type hint, it automatically parses JSON, checks if they match up to the Pydantic schema and returns a 422 error if not
-    result = db.execute(select(models.User).where(models.User.id == post.user_id))
+async def create_post(post: PostCreate, db: Annotated[AsyncSession, Depends(get_db)]): # When fastapi sees a type hint, it automatically parses JSON, checks if they match up to the Pydantic schema and returns a 422 error if not
+    result = await db.execute(select(models.User).where(models.User.id == post.user_id))
     user = result.scalars().first()
     if not user:
         raise HTTPException(
@@ -314,20 +368,24 @@ def create_post(post: PostCreate, db: Annotated[Session, Depends(get_db)]): # Wh
         user_id=post.user_id,
     )
     db.add(new_post)
-    db.commit()
-    db.refresh(new_post)
+    await db.commit()
+    await db.refresh(new_post)
     return new_post
 
 # Below we illustrate how to use path parameters in fastapi
 # Path parameters are a dynamic part of the url that changes based on the request made
 # fastapi will automatically recognize a path parameter when it is formatted in the way below with a type hint
 @app.get("/api/posts/{post_id}", response_model=PostResponse)
-def get_post(post_id: int, db: Annotated[Session, Depends(get_db)]):
+async def get_post(post_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
     
     # path parameter is automatically captured and passed as a variable into our function when function takes argument of the same name
     # and when it's type is type hinted accurately
     # The type hint is important as fastapi automatically uses that to validate requests
-    result = db.execute(select(models.Post).where(models.Post.id == post_id))
+    result = await db.execute(
+        select(models.Post)
+        .options(selectinload(models.Post.author))
+        .where(models.Post.id == post_id)
+        )
     post = result.scalars().first()
     if post:
         return post
@@ -335,15 +393,18 @@ def get_post(post_id: int, db: Annotated[Session, Depends(get_db)]):
 
 # PUT style update: Here we use the PostCreate itself as input as it makes all fields required which we need for a complete update
 @app.put("/api/posts/{post_id}", response_model=PostResponse)
-def update_post_full(post_id: int, post_data: PostCreate, db: Annotated[Session, Depends(get_db)]):
+async def update_post_full(post_id: int, post_data: PostCreate, db: Annotated[AsyncSession, Depends(get_db)]):
     
-    result = db.execute(select(models.Post).where(models.Post.id == post_id))
+    result = await db.execute(
+     select(models.Post)
+     .where(models.Post.id == post_id)
+     )
     post = result.scalars().first()
     if not post: # Raising HTTP exception if the post to be updated does not exist
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
     
     if post_data.user_id != post.user_id: # Checking if user id pertaining to input post is the same as user_id of post given in path parameter
-        result = db.execute(
+        result = await db.execute(
             select(models.User).where(models.User.id == post_data.user_id), # Checking if user with same user id as that of post sent in JSON body exists
         )
         user = result.scalars().first() 
@@ -358,19 +419,31 @@ def update_post_full(post_id: int, post_data: PostCreate, db: Annotated[Session,
     post.content = post_data.content
     post.user_id = post_data.user_id
 
-    db.commit() # commiting changes
-    db.refresh(post)
+    await db.commit() # commiting changes
+    # db here is an async SQLAlchemy session.
+    #  refresh() re-fetches the current state of post (an ORM model instance) from the database,
+    #  overwriting whatever values are currently sitting in memory on that object
+    # By default, refresh() reloads all columns on the object. The attribute_names parameter narrows this down — 
+    # it tells SQLAlchemy to refresh only the listed attribute(s), rather than every column
+    # After commit(), SQLAlchemy often expires the object's attributes (so they'll be lazily reloaded on next access).
+    #  But lazy-loading a relationship with a normal attribute access (post.author) would 
+    # require an implicit synchronous-style DB query — which doesn't work well in async SQLAlchemy, 
+    # since lazy loads aren't awaited automatically and will raise an error (MissingGreenlet / "greenlet_spawn has not been called") if you try
+    await db.refresh(post, attribute_names=["author"]) 
     return post
 
 # below is the patch endpoint, used for partial updates
 # See that we pass PostUpdate as the input schema instead of PostCreate
 @app.patch("/api/posts/{post_id}", response_model=PostResponse)
-def update_post_partial(
+async def update_post_partial(
     post_id: int,
     post_data: PostUpdate,
-    db: Annotated[Session, Depends(get_db)],
+    db: Annotated[AsyncSession, Depends(get_db)],
 ):
-    result = db.execute(select(models.Post).where(models.Post.id == post_id))
+    result = await db.execute(
+        select(models.Post)
+        .where(models.Post.id == post_id)
+        )
     post = result.scalars().first()
     if not post:
         raise HTTPException(
@@ -385,26 +458,32 @@ def update_post_partial(
         setattr(post, field, value) # setattr() is a built-in Python function that lets you set an attribute on an object dynamically, using a string for the attribute name instead of writing it directly in code
         # It's the dynamic equivalent of writing object.attribute_name = value. The difference is that with setattr(), the attribute name can be a variable — a string computed at runtime — rather than something hardcoded
 
-    db.commit()
-    db.refresh(post)
+    await db.commit()
+    await db.refresh(post, attribute_names=["author"])
     return post
   
 @app.delete("/api/posts/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(post_id: int, db: Annotated[Session, Depends(get_db)]):
-    result = db.execute(select(models.Post).where(models.Post.id == post_id))
+async def delete_post(post_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
+    result = await db.execute(select(models.Post).where(models.Post.id == post_id))
     post = result.scalars().first()
     if not post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
         )
 
-    db.delete(post)
-    db.commit()
+    await db.delete(post)
+    await db.commit()
 
 # This is a global exception handler that catches all HTTP exceptions across the entire app
 # StarletteHTTPException is the base class for all HTTP exceptions, so this catches everything
 @app.exception_handler(StarletteHTTPException)
-def general_http_exception_handler(request: Request, exception: StarletteHTTPException):
+async def general_http_exception_handler(request: Request, exception: StarletteHTTPException):
+
+
+  # Check if the request is coming from an API route (i.e. the URL starts with "/api")
+  # API routes should return JSON responses, not HTML pages
+  if request.url.path.startswith("/api"):
+    return await http_exception_handler(request, exception)
   
   # Use the exception's detail message if it exists, otherwise fall back to a generic message
   message = (
@@ -412,14 +491,6 @@ def general_http_exception_handler(request: Request, exception: StarletteHTTPExc
     if exception.detail
     else "An error occurred. Please check your request and try again"
   )
-
-  # Check if the request is coming from an API route (i.e. the URL starts with "/api")
-  # API routes should return JSON responses, not HTML pages
-  if request.url.path.startswith("/api"):
-    return JSONResponse(
-      status_code=exception.status_code, # Return the original status code (e.g. 404, 403)
-      content= {"detail": message} # Note: your original code has a bug here — {"detail".message} should be {"detail": message}
-    )
   
   # If the request is not an API route, return an HTML error page using a Jinja2 template
   return templates.TemplateResponse(
@@ -437,15 +508,12 @@ def general_http_exception_handler(request: Request, exception: StarletteHTTPExc
 # Validation errors occur when the request data doesn't match the expected types or schema
 # e.g. sending a string where an integer is expected in a path parameter
 @app.exception_handler(RequestValidationError)
-def validation_exception_handler(request: Request, exception: RequestValidationError):
+async def validation_exception_handler(request: Request, exception: RequestValidationError):
 
    # Check if the request is coming from an API route (i.e. the URL starts with "/api")
    # API routes should return JSON responses, not HTML pages
    if request.url.path.startswith("/api"):
-    return JSONResponse(
-      status_code = status.HTTP_422_UNPROCESSABLE_ENTITY, # 422 means the server understood the request but couldn't process it due to invalid data
-      content= {"detail": exception.errors()} # exception.errors() returns a list of validation errors describing exactly what went wrong
-    )
+    return await request_validation_exception_handler(request, exception)
    
    # If the request is not an API route, return an HTML error page using a Jinja2 template
    return templates.TemplateResponse(

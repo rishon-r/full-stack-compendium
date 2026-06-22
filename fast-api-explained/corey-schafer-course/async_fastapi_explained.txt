@@ -1,0 +1,15 @@
+
+
+Asynchronous execution of code allows our code to do multiple things concurrently
+This is not very helpful for CPU bound tasks but for I/O bound tasks it is very useful
+i.e when part of our code is waiting for a dtabase query, network response or response from a disk, we can
+optimize our time by executing some other task.
+
+Functions defined with just def are executed by fastapi in a separate thread pool and do not disturb the event loop
+However, when a function is defined with an async before a def, it is what we call an asynchronous function
+and this runs as a part of the main event loop. Here, we must await any I/O otherwise we eat up time on our main event loop
+
+Installing some dependenicies:
+
+pip install aiosqlite - Installing an asynchronous driver for sqlite
+pip install greenlet- greenlet is a low-level library that provides lightweight, cooperative "micro-threads" within a single OS thread — basically a way to pause and resume chunks of code at arbitrary points, without using real OS threads or async/await
