@@ -17,7 +17,7 @@ AsyncSessionLocal = async_sessionmaker(
 ) # This is a factory that creates database sessions
 # A session can be viewed as a transaction with a database
 # Each request gets its own session
-# Call SessionLocal() to create an actual session from the session factory
+# Call AsyncSessionLocal() to create an actual session from the session factory
 
 # DeclarativeBase is a base class that all our ORM models will inherit from
 class Base(DeclarativeBase): # In SQLAlchemy 2 we inherit from DeclarativeBase directly instead of having to do base = declarative_base()
@@ -42,7 +42,7 @@ async def get_db(): # This is a dependency function that provides sessions to ou
         1. FastAPI calls get_db()
                 │
                 ▼
-        2. 'with SessionLocal()' opens a DB connection
+        2. 'with AsyncSessionLocal()' opens a DB connection
                 │
                 ▼
         3. 'yield db' pauses get_db() and hands the connection to your Route

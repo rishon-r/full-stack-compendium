@@ -1,5 +1,4 @@
 from fastapi import FastAPI # importing the FastAPi class that is used to create our app instance
-from fastapi.responses import HTMLResponse # allows our server to return HTML rendered as a response
 from fastapi import Request # Jinja 2 templates require the Request object
 from fastapi.templating import Jinja2Templates # Importing Jinja2Templates
 from fastapi.staticfiles import StaticFiles # Used to serve static content
@@ -23,23 +22,56 @@ from sqlalchemy.orm import selectinload
 # IMPORTING ROUTERS
 from routers import users, posts
 
+# Below function defines what happens when a FastAPI app starts up and shuts down
+# Everything before yield runs as startup, everything after yield runs as shutdown
+# The python mechanism that makes this work: generator based context manager
+# A context manager is a python object with two hooks: "do this when entering" and "do this when exiting"
+# Python typically wants you to implement two methods: __enter__ and __exit__ for this to happen
+# However, importing asynccontextmanageer from contextlib provides us a shortcut to do this with the below @aynccontextmanager decorator
+# It allows us to write a Python context manager as a single function with a yield instead of an object with two methods
+# the code before yield acts as enter behaviour and code after yield acts as exit behaviour
+# The _app: FastAPI parameter is the app instance, passed in by FastAPI (prefixed with _ to signal "received but unused"
 @asynccontextmanager # Turns the below into an async context manager
 async def lifespan(_app: FastAPI):
     # Startup: all the code before the yield runs before startup
+    # engine below is the SQLAlchemy engine, this is the object that knows how to talk to your database
+    # engine.begin() opens a connetion and begins a transaction, autocomitting if the block exits cleanly
+    # It's itself an async context manager, so it needs async with
     async with engine.begin() as conn: # engine.begin() is used to create an async connection
         await conn.run_sync(Base.metadata.create_all) # run_sync allows us to run the synchronous create_all method that creates all our tables
-        # Base.metadata.create_all is also idempotent: it can be run multiple times safely
+        # Base.metadata.create_all is a synchronous SQLAlchemy command that inspects all your models and creates tables if they don't already run clearly
+        # It is also idempotent: it can be run multiple times safely
+        # The problem with the above code is that Base.metadat.create_all is a synchronous command
+        # conn.run_sync acts as a bridge and under the hood runs the synchronous command asynchronouslyt
+        
     yield # This is where our application actually begins running
     # Shutdown: Here, we dispose of the engine properly
+    # It releases all open database connections so that the app exits cleanly
     await engine.dispose()
 
+# ASYNC WITH vs REGULAR WITH
+# A regular with calls synchronous methods: __enter__() and __exit__(). 
+# These run to completion immediately, blocking whatever thread they're on — there's no way to "pause" them
+# An async with calls asynchronous methods: __aenter__() and __aexit__(). 
+# These are coroutines — they can await other things inside them,
+# and pause/yield control back to the event loop while waiting
 
+# await EXPLAINED
+# await pauses execution of the current coroutine at that point, without blocking the thread.
+# It hands control back to the event loop, saying
+# "I'm waiting on this operation (network, disk, timer); go run something else until it's ready." 
+# The event loop then schedules other pending tasks. 
+# Once the awaited operation completes, the event loop resumes the coroutine exactly where it left off, 
+# with the result of that operation as the expression's value. So await is really a checkpoint:
+# it converts blocking-style waiting into cooperative scheduling,
+# letting one thread juggle many concurrent operations efficiently, while still reading like ordinary, 
+# linear, top-to-bottom code.
 
 
 app = FastAPI(lifespan=lifespan)  # Creating an instance of our app (this is our app object)
 # An app object is what we add all our routes to
 # FastAPI uses decorators for routes (similar to flask)
-# lifespan refers to the synccontext manager we use for startup and teardown that is defined above
+# lifespan refers to the asynccontext manager we use for startup and teardown that is defined above
 
 # This creates a templates object that knows to look in our templates directory to find our templates files
 templates = Jinja2Templates(directory="templates") 
@@ -54,6 +86,9 @@ templates = Jinja2Templates(directory="templates")
 
 # INCLUDING ROUTERS
 # prefix parameter adds given string as prefix to URLs of all routes in the router
+# tags here is purely about documentation/organization — it has zero effect on routing, URLs, or request handling
+# In that generated documentation, every endpoint can be grouped under one or more labeled sections. 
+# tags=["users"] tells FastAPI: "every route inside users.router should be filed under the 'users' group in the docs
 app.include_router(posts.router, prefix="/api/posts", tags=["posts"])
 app.include_router(users.router, prefix="/api/users", tags=["users"])
 
