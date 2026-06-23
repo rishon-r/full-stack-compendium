@@ -16,6 +16,7 @@ async def get_posts(db: Annotated[AsyncSession, Depends(get_db)]):
     result = await db.execute(
         select(models.Post)
         .options(selectinload(models.Post.author))
+        .order_by(models.Post.date_posted.desc())
     )
     posts = result.scalars().all()
     return posts # fastapi will automatically convert this into a JSON array
@@ -23,7 +24,7 @@ async def get_posts(db: Annotated[AsyncSession, Depends(get_db)]):
 
 
 @router.post(
-    "/api/posts",
+    "",
     response_model=PostResponse,
     status_code=status.HTTP_201_CREATED,
 )
@@ -43,7 +44,7 @@ async def create_post(post: PostCreate, db: Annotated[AsyncSession, Depends(get_
     )
     db.add(new_post)
     await db.commit()
-    await db.refresh(new_post)
+    await db.refresh(new_post, attribute_names=["author"])
     return new_post
 
 # Below we illustrate how to use path parameters in fastapi

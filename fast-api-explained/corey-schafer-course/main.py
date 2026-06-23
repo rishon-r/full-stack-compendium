@@ -173,7 +173,9 @@ app.mount("/media", StaticFiles(directory="media"), name="media")
 # url_for generates a URL for a named route or static file dynamically, rather than hardcoding URLs as strings
 async def home(request: Request, db: Annotated[AsyncSession, Depends(get_db)]):
     result = await db.execute(
-        select(models.Post).options(selectinload(models.Post.author)), # Eager loading for an async function
+        select(models.Post)
+        .options(selectinload(models.Post.author))
+        .order_by(models.Post.date_posted.desc()), # Eager loading for an async function
         # Now, when we iterate through posts in our templates and access post.author, it is going to work
         # As we already loaded in that data via eager loading above
 
@@ -238,6 +240,7 @@ async def user_posts_page(
         select(models.Post)
         .options(selectinload(models.Post.author))
         .where(models.Post.user_id == user_id)
+        .order_by(models.Post.date_posted.desc())
         )
     posts = result.scalars().all()
     return templates.TemplateResponse(
