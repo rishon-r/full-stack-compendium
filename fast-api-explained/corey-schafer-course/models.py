@@ -30,8 +30,12 @@ class User(Base):
     # 5. 'email' is defined as a string column maxing out at 120 characters.
     # It must be unique (no duplicate accounts per email) and cannot be left blank ('nullable=False').
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+
+    # 6. password_hash : Note here that we store password_hash and not plain password. It is practice to only store hashed passwords in the database
+    # and not plain passwords themselves. This is very important for security reasons
+    password_hash: Mapped[str] = mapped_column(String(200), nullable=False)
     
-    # 6. 'image_file' is defined as an optional string column ('Mapped[str | None]') up to 200 characters.
+    # 7. 'image_file' is defined as an optional string column ('Mapped[str | None]') up to 200 characters.
     # 'nullable=True' and 'default=None' mean users don't have to upload a profile picture right away; it will default to None.
     image_file: Mapped[str | None] = mapped_column(
         String(200),
@@ -39,7 +43,9 @@ class User(Base):
         default=None,
     )
 
-    # 7. 'posts' sets up an ORM "Relationship" between the User model and the Post model.
+
+
+    #  'posts' sets up an ORM "Relationship" between the User model and the Post model.
     # This is a Python-only convenience tool (not a database column). It lets you type 'user.posts' to instantly get a list of all posts written by this user.
     # 'back_populates="author"' creates a bidirectional link, meaning the Post model must have a matching 'author' relationship pointing back to this User.
     posts: Mapped[list[Post]] = relationship(back_populates="author", cascade="all, delete-orphan") # Cascade= "all, delete-orphan" means that when a user is deleted, so should all their posts

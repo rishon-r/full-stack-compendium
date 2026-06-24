@@ -24,9 +24,9 @@ class UserBase(BaseModel):
   email: EmailStr = Field(max_length=100) # EmailStr validates whether or not this string is automatically in email format and we don't need a min length as EmailStr automatically checks if it is an empty string
 
 class UserCreate(UserBase):
-  pass
+  password: str = Field(min_length=8)
 
-class UserResponse(UserBase):
+class UserPublic(BaseModel):
   # In Pydantic 2, we configure models with ConfigDict
   # from_attributes=True tells Pydantic that it can read data from objects with attributes and not just dictionaries.
   # This is important when working with databases
@@ -36,8 +36,17 @@ class UserResponse(UserBase):
   model_config = ConfigDict(from_attributes=True)
 
   id: int
+  username: str
   image_file: str | None
   image_path: str # See that this is a property in our model, however from_attributes=True in the configuration allows us to read from this as well
+
+class UserPrivate(UserPublic):
+
+  # Used for returning user data privately to that user alone
+  # has email which is not included in the UserPublic public response as that would be a security concern
+  # as users probably would not want their emails leaked
+  email: EmailStr
+
 
 # You can generally update resources via two HTTP Methods: PUT and PATCH
 # PUT is used to make complete updates: this involves updating every field of a resource
@@ -51,6 +60,12 @@ class UserUpdate(BaseModel):
   username: str | None = Field(default=None, min_length=1, max_length=50)
   email: EmailStr | None = Field(default=None, max_length=100)
   image_file: str | None = Field(default=None, min_length=1, max_length=200)
+
+
+# TOKEN CLASS
+class Token(BaseModel):
+  access_token: str
+  token_type: str
 
 
 class PostBase(BaseModel):
@@ -93,5 +108,5 @@ class PostResponse(PostBase):
   id: int
   user_id: int
   date_posted: datetime
-  author: UserResponse
+  author: UserPublic
   

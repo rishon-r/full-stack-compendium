@@ -249,6 +249,26 @@ async def user_posts_page(
         {"posts": posts, "user": user, "title": f"{user.username}'s Posts"},
     )
 
+# LOG IN AND REGISTER ROUTES
+@app.get("/login", include_in_schema=False)
+async def login_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "login.html",
+        {"title": "Login"},
+    )
+
+
+@app.get("/register", include_in_schema=False)
+async def register_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "register.html",
+        {"title": "Register"},
+    )
+
+
+
 # This is a global exception handler that catches all HTTP exceptions across the entire app
 # StarletteHTTPException is the base class for all HTTP exceptions, so this catches everything
 @app.exception_handler(StarletteHTTPException)

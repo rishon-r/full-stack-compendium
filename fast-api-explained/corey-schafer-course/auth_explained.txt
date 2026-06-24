@@ -1,0 +1,55 @@
+Required Installations:
+
+pip install "pwdlib[argon2]" - Required for password hashing
+pip install pyjwt - Used for verifying JSON WEB TOKENS (JWTs) which are very important for authentication
+pip install pydantic-settings - Used to manage configuration settings
+
+
+What is JWT?
+
+JWT stands for JSON Web Tokens.
+JWTs are a URL safe way to represent claims (pieces of information) that need to be transferred between two parties, most commonly used for authentication in web applications.
+
+When a user logs in, instead of the server creating a session and storing it in memory/database, 
+the server creates a JWT containing the user's identity info, signs it, and hands it to the client.
+The client then sends this token with every subsequent request. 
+The server can verify the token is authentic without needing to look anything up in a database — 
+it just checks the signature
+
+JWT structure
+
+A JWT looks like this: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyMTIzIiwiZXhwIjoxNzE5MjYzNDAwfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+
+It's three base64url-encoded segments separated by dots: header.payload.signature
+
+Header represents the token type and encoding algorithm
+Payload represents the actual claims (data)
+
+The header and payload are only encoded, not encrypted. 
+Anyone can decode them and read the contents (try pasting a JWT into jwt.io). Never put secrets/passwords in a JWT payload.
+
+Signature: This is the part that makes JWTs trustworthy. It's created by taking the encoded header + payload,
+and running them through a signing algorithm with a secret key. The signature lets us know if the header and payload have been tampered with
+
+How verification works:
+
+Client sends a request with the JWT (usually in an Authorization: Bearer <token> header).
+Server takes the header + payload from the token, re-computes the signature using its secret key.
+Server compares this computed signature to the one in the token.
+If they match → the token hasn't been tampered with, and it was issued by someone who knows the secret (presumably your server). If they don't match → reject it.
+Server also checks exp to make sure the token hasn't expired.
+
+Why Use JWTs?
+
+Stateless — server doesn't need to store session data; everything needed is in the token itself.
+Scalable — works well across multiple servers/microservices, since any server with the secret key can verify the token without a shared session store.
+Self-contained — the token carries its own claims (user ID, roles, expiration).
+
+
+JWT handles stateless authentication. 
+It acts as a tamper-proof digital ID badge that the client shows to the server on every request, 
+proving who they are without forcing the server to remember them or check a database session table every single time.
+
+HTTPS handles encryption in transit.
+It creates a secure tunnel so that eavesdroppers on the network cannot read the data (like passwords or tokens)
+being sent back and forth.
