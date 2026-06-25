@@ -84,8 +84,7 @@ class PostBase(BaseModel):
 class PostCreate(PostBase):
   # Empty class with just pass makes it essentially follow the same rules as PostBase
   # This is the class we will use when creating posts
-  
-  user_id: int # TEMPORARY FOR TESTING
+  pass
 
 # You can generally update resources via two HTTP Methods: PUT and PATCH
 # PUT is used to make complete updates: this involves updating every field of a resource

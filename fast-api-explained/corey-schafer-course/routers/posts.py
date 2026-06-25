@@ -9,6 +9,8 @@ import models
 from database import get_db
 from schemas import PostCreate, PostResponse, PostUpdate # Importing our Pydantic schemas that we will ad as response_models to our route decorators
 
+from auth import CurrentUser
+
 router = APIRouter()
 
 @router.get("", response_model=list[PostResponse]) # Adding a response model will make fastapi automatically validate the data to ensure it matches the type mentioned
@@ -28,19 +30,14 @@ async def get_posts(db: Annotated[AsyncSession, Depends(get_db)]):
     response_model=PostResponse,
     status_code=status.HTTP_201_CREATED,
 )
-async def create_post(post: PostCreate, db: Annotated[AsyncSession, Depends(get_db)]): # When fastapi sees a type hint, it automatically parses JSON, checks if they match up to the Pydantic schema and returns a 422 error if not
-    result = await db.execute(select(models.User).where(models.User.id == post.user_id))
-    user = result.scalars().first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
+async def create_post(post: PostCreate,
+            current_user: CurrentUser,
+            db: Annotated[AsyncSession, Depends(get_db)]): # When fastapi sees a type hint, it automatically parses JSON, checks if they match up to the Pydantic schema and returns a 422 error if not
 
     new_post = models.Post(
         title=post.title,
         content=post.content,
-        user_id=post.user_id,
+        user_id=current_user.user_id,
     )
     db.add(new_post)
     await db.commit()
@@ -68,7 +65,10 @@ async def get_post(post_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
 
 # PUT style update: Here we use the PostCreate itself as input as it makes all fields required which we need for a complete update
 @router.put("/{post_id}", response_model=PostResponse)
-async def update_post_full(post_id: int, post_data: PostCreate, db: Annotated[AsyncSession, Depends(get_db)]):
+async def update_post_full(post_id: int,
+                        current_user: CurrentUser, 
+                        post_data: PostCreate, 
+                        db: Annotated[AsyncSession, Depends(get_db)]):
     
     result = await db.execute(
      select(models.Post)
@@ -78,21 +78,14 @@ async def update_post_full(post_id: int, post_data: PostCreate, db: Annotated[As
     if not post: # Raising HTTP exception if the post to be updated does not exist
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
     
-    if post_data.user_id != post.user_id: # Checking if user id pertaining to input post is the same as user_id of post given in path parameter
-        result = await db.execute(
-            select(models.User).where(models.User.id == post_data.user_id), # Checking if user with same user id as that of post sent in JSON body exists
+    if post.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail= "Not authorized to update this post"
         )
-        user = result.scalars().first() 
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found",
-            )
-
     # Updating all major fields
     post.title = post_data.title
     post.content = post_data.content
-    post.user_id = post_data.user_id
 
     await db.commit() # commiting changes
     # db here is an async SQLAlchemy session.
@@ -113,6 +106,7 @@ async def update_post_full(post_id: int, post_data: PostCreate, db: Annotated[As
 async def update_post_partial(
     post_id: int,
     post_data: PostUpdate,
+    current_user: CurrentUser,
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     result = await db.execute(
@@ -125,6 +119,12 @@ async def update_post_partial(
             status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
         )
 
+    if post.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail= "Not authorized to update this post"
+        )
+    
     update_data = post_data.model_dump(exclude_unset=True) # model.dump() converts a Pydantic model into a plain Python dictionary
     # exclude_unset is very important for our patch here
     # if exclude_unset was not set to True, Python would include every field in the model in the dictonary
@@ -138,12 +138,18 @@ async def update_post_partial(
     return post
   
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_post(post_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
+async def delete_post(post_id: int, current_user: CurrentUser, db: Annotated[AsyncSession, Depends(get_db)]):
     result = await db.execute(select(models.Post).where(models.Post.id == post_id))
     post = result.scalars().first()
     if not post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
+        )
+    
+    if post.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail= "Not authorized to delete this post"
         )
 
     await db.delete(post)

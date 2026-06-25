@@ -12,7 +12,7 @@ from schemas import PostResponse, UserCreate, UserPublic, UserPrivate, UserUpdat
 from datetime import timedelta
 from fastapi.security import OAuth2PasswordRequestForm
 
-from auth import create_access_token, hash_password, oauth2_scheme, verify_access_token, verify_password
+from auth import create_access_token, hash_password, verify_password, CurrentUser
 from config import settings
 
 router = APIRouter()
@@ -79,6 +79,7 @@ async def create_user(user: UserCreate, db: Annotated[AsyncSession, Depends(get_
 # FastAPI automatically uses the type hint declared next to it as the dependency
 # Depends() sees OAuth2RequestForm (which is typically OAuth2PasswordRequestForm from fastapi.security)
 #  and treats that class exactly as if you had written Depends(OAuth2PasswordRequestForm)
+
 # Because of how OAuth2PasswordRequestForm is built internally, 
 # FastAPI recognizes that these fields must come from an HTML form (application/x-www-form-urlencoded).
 # It intercepts the incoming HTTP request body and extracts the values matching those field names
@@ -117,45 +118,11 @@ async def login_for_access_token(
     )
     return Token(access_token=access_token, token_type="bearer")
 
-# Endpoint to get the current user
-# When you inject oauth2_scheme into a route using Depends(), FastAPI automatically looks at the incoming request's HTTP headers. 
-# It searches specifically for a header named Authorization and expects the value to follow the standard Bearer format: Authorization: Bearer <your_jwt_token_here>
-# It strips away the word "Bearer " and extracts just the raw token string, passing it directly into your route function.
+# ENDPOINT TO GET CURRENT USER
 @router.get("/me", response_model=UserPrivate)
-async def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)],
-    db: Annotated[AsyncSession, Depends(get_db)],
-):
+async def get_current_user(current_user: CurrentUser):
     """Get the currently authenticated user."""
-    user_id = verify_access_token(token)
-    if user_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    # Validate user_id is a valid integer (defense against malformed JWT)
-    try:
-        user_id_int = int(user_id)
-    except (TypeError, ValueError):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    result = await db.execute(
-        select(models.User).where(models.User.id == user_id_int),
-    )
-    user = result.scalars().first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return user
+    return current_user
 
 
 @router.get("/{user_id}", response_model=UserPublic)
@@ -194,8 +161,17 @@ async def get_user_posts(user_id: int, db: Annotated[AsyncSession, Depends(get_d
 async def update_user(
     user_id: int,
     user_update: UserUpdate,
+    current_user: CurrentUser,
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
+    
+
+    if user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail= "Not authorized to update this user"
+        )
+    
     result = await db.execute(select(models.User).where(models.User.id == user_id))
     user = result.scalars().first()
     if not user:
@@ -239,7 +215,15 @@ async def update_user(
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_user(user_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
+async def delete_user(user_id: int, current_user: CurrentUser, db: Annotated[AsyncSession, Depends(get_db)]):
+
+    if user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail= "Not authorized to delete this user"
+        )
+    
+
     result = await db.execute(select(models.User).where(models.User.id == user_id))
     user = result.scalars().first()
     if not user:

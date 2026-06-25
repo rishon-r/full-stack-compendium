@@ -267,6 +267,15 @@ async def register_page(request: Request):
         {"title": "Register"},
     )
 
+# ACCOUNT PAGE FOR USER
+@app.get("/account", include_in_schema=False)
+async def account_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "account.html",
+        {"title": "Account"},
+    )
+
 
 
 # This is a global exception handler that catches all HTTP exceptions across the entire app

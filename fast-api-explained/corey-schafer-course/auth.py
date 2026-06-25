@@ -3,6 +3,12 @@ import jwt
 from fastapi.security import OAuth2PasswordBearer
 from pwdlib import PasswordHash
 from config import settings
+from typing import Annotated
+from fastapi import Depends, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+import models
+from database import get_db
 
 password_hash  = PasswordHash.recommended() # Creates a password hash with argon2 using the recommended settings
 
@@ -63,3 +69,104 @@ def verify_access_token(token: str) -> str | None:
         return payload.get("sub")
 
 
+
+# When you inject oauth2_scheme into a route using Depends(), FastAPI automatically looks at the incoming request's HTTP headers. 
+# It searches specifically for a header named Authorization and expects the value to follow the standard Bearer format: Authorization: Bearer <your_jwt_token_here>
+# It strips away the word "Bearer " and extracts just the raw token string, passing it directly into your route function.
+async def get_current_user(
+    # token: extracted automatically by FastAPI via the oauth2_scheme dependency.
+    # oauth2_scheme reads the "Authorization: Bearer <token>" header from the
+    # incoming request and pulls out just the token string (the part after "Bearer ").
+    # If the header is missing entirely, oauth2_scheme itself will raise a 401
+    # before this function even runs.
+    token: Annotated[str, Depends(oauth2_scheme)],
+
+    # db: an active database session, injected by the get_db dependency.
+    # FastAPI calls get_db(), which yields an AsyncSession, opens it for this
+    # request, and will automatically close it after the request finishes
+    # (success or failure) since get_db is a generator-based dependency.
+    db: Annotated[AsyncSession, Depends(get_db)],
+
+# Return type hint: this function either returns a fully-loaded User model
+# instance, or raises an HTTPException (so it never actually returns None).
+) -> models.User:
+
+    # Decode and verify the JWT using our earlier verify_access_token function.
+    # That function checks the signature, expiration, and required claims,
+    # then returns the "sub" claim (the user ID as a string) if everything
+    # checks out, or None if the token is invalid/expired/tampered with/missing claims.
+    user_id = verify_access_token(token)
+
+    # If verify_access_token returned None, the token failed validation in some way
+    # (bad signature, expired, missing claims, etc.) — we don't know or care which,
+    # we just treat it as "not authenticated."
+    if user_id is None:
+        raise HTTPException(
+            # 401 Unauthorized: client did not provide valid credentials.
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            # Generic message — deliberately vague, same security principle as
+            # the login endpoint: don't give attackers clues about *why* it failed.
+            detail="Invalid or expired token",
+            # Tells the client which auth scheme to use when retrying
+            # (part of the OAuth2/HTTP spec convention).
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # The "sub" claim was stored as a string when the token was created
+    # (recall: data={"sub": str(user.id)} in create_access_token).
+    # We need it back as an int to match the User model's id column type,
+    # so we attempt to convert it here.
+    try:
+        user_id_int = int(user_id)
+    # If user_id isn't a valid string representation of an integer
+    # (e.g. it's None, or some unexpected non-numeric string),
+    # int() will raise either TypeError or ValueError.
+    except (TypeError, ValueError):
+        raise HTTPException(
+            # Treat a malformed "sub" claim the same as an invalid token overall —
+            # again, same generic message, same status code, for consistency
+            # and to avoid leaking implementation details.
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Query the database for a user whose id matches the one decoded from the token.
+    # select(models.User) is SQLAlchemy's way of building a SELECT * FROM users query.
+    # .where(models.User.id == user_id_int) adds a WHERE id = <user_id_int> clause.
+    # await db.execute(...) actually runs the query asynchronously against the DB.
+    result = await db.execute(
+        select(models.User).where(models.User.id == user_id_int),
+    )
+
+    # .scalars() extracts the actual User objects from the raw result rows.
+    # .first() grabs the first match, or None if no user has that id
+    # (e.g. the user was deleted after the token was issued, but the token
+    # itself is still technically valid/unexpired).
+    user = result.scalars().first()
+
+    # If no matching user was found in the database, reject the request —
+    # a syntactically valid, correctly-signed token doesn't help if the
+    # underlying user no longer exists.
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            # Slightly more specific message here, since at this point we know
+            # the token itself was valid — it's specifically the user lookup
+            # that failed. (Some teams might choose to keep this generic too,
+            # depending on how strict they want to be about information leakage.)
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Everything checked out: valid signature, not expired, well-formed user id,
+    # and a matching user exists in the database. Return the actual User model
+    # instance — this becomes the value injected wherever this function is used
+    # as a dependency (e.g. current_user: Annotated[models.User, Depends(get_current_user)]
+    # in a protected route).
+    return user
+
+# This line creates a reusable type alias — it doesn't run any logic itself,
+# it just gives a name to a commonly-used Annotated type so you don't have to repeat it everywhere
+# Without the alias, every protected route would need to repeat the full, somewhat verbose type hint
+CurrentUser = Annotated[models.User, Depends(get_current_user)]
