@@ -5,45 +5,67 @@ pip install pyjwt - Used for verifying JSON WEB TOKENS (JWTs) which are very imp
 pip install pydantic-settings - Used to manage configuration settings
 
 
-What is JWT?
+Authentication
 
-JWT stands for JSON Web Tokens.
-JWTs are a URL safe way to represent claims (pieces of information) that need to be transferred between two parties, most commonly used for authentication in web applications.
+Authentication is the process by which a user proves that they are who they say they are
 
-When a user logs in, instead of the server creating a session and storing it in memory/database, 
-the server creates a JWT containing the user's identity info, signs it, and hands it to the client.
-The client then sends this token with every subsequent request. 
-The server can verify the token is authentic without needing to look anything up in a database — 
-it just checks the signature
+Authorization
 
-JWT structure
+Authorization is the process by which one knows if a particular user is allowed to access a particular resource (i.e are they authorized to access this page?)
 
-A JWT looks like this: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyMTIzIiwiZXhwIjoxNzE5MjYzNDAwfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+User Authentication
 
-It's three base64url-encoded segments separated by dots: header.payload.signature
+User Authentication is the process by which a website checks if a user is who they say they are. This is done primarily through JWTs (JSON Web Tokens) currently (in 2026)
 
-Header represents the token type and encoding algorithm
-Payload represents the actual claims (data)
+API Authentication
 
-The header and payload are only encoded, not encrypted. 
-Anyone can decode them and read the contents (try pasting a JWT into jwt.io). Never put secrets/passwords in a JWT payload.
+Assume you are building an application that has to access some external service. If this external service is an API (a private API not a public API), then you need an API key to access it. This API key acts as sort of a password which allows your application to access this API.
 
-Signature: This is the part that makes JWTs trustworthy. It's created by taking the encoded header + payload,
-and running them through a signing algorithm with a secret key. The signature lets us know if the header and payload have been tampered with
+More on User Authentication and Authorization
 
-How verification works:
+A protected route is a route that a user needs to be authenticated (logged in) to access
+An authorization check is typically done after a user accesses a protected route to further check if that they are the user that is allowed to do this operation
+E.g When deleting a resource, the route will initially check if the user is logged in and otherwise deny them access (this is authentication), then when deleting a post, the backend will again check if this is a user that is allowed to delete this resource (this is authorization)
 
-Client sends a request with the JWT (usually in an Authorization: Bearer <token> header).
-Server takes the header + payload from the token, re-computes the signature using its secret key.
-Server compares this computed signature to the one in the token.
-If they match → the token hasn't been tampered with, and it was issued by someone who knows the secret (presumably your server). If they don't match → reject it.
-Server also checks exp to make sure the token hasn't expired.
+How this process of User Authentication and Authorization works
 
-Why Use JWTs?
+First, a user logs in.
+When this happens, we give the user a token. This token (often a JWT) is typically sent back to the client and stored (e.g., in a cookie or local storage), and it usually encodes some info about the user (like their user ID, maybe their role) plus an expiry time
+The token is then used for any request made to protected routes, this will show that the user is logged in. 
+Then the back end will do another check when an operation that requires authorization is made at that protected route. This typically requires retrieving some information from the payload of the JWT and performing a check (payload is essentially the data that the JWT is carrying)
 
-Stateless — server doesn't need to store session data; everything needed is in the token itself.
-Scalable — works well across multiple servers/microservices, since any server with the secret key can verify the token without a shared session store.
-Self-contained — the token carries its own claims (user ID, roles, expiration).
+How a token works
+
+When a user logs in and if they get the credentials right, the backend server signs a token (this is done with the help of a backend key and delves into cryptography which we will not pursue further here) and issues it to the user
+The token is sent with every request to the backend that needs to know who the user is — which in practice is usually all API calls to your server, not just ones to explicitly "protected" routes.
+Most commonly it is sent in a HTTP header - Authorization: Bearer <token>
+Bearer here is known as the authorization scheme
+At every request, the backend then checks and verifies the token’s authenticity
+If the client tries to modify the token (usually to change permissions or authorization), the server will be able to detect the token as inauthentic and raise an exception/error 
+It does this because the client can’t sign a token and only the backend can sign a token, as to sign a token you need the signing key. This signing key is also a secret value that only the server knows
+It is very important to protect this secret key. This is usually saved in a .env file that isn’t mentioned in any source control (added to .gitignore)
+If a client were to modify a token, this would produce a different signature as the signing key never leaves the server. So the server would be able to detect the token as a phony token.
+
+JWT, the most commonly used token, and what it looks like
+
+A token to the plain eye seems like a random sequence of letters and number but behind that lies encoded information
+It is a sequence broken into 3 parts separated by 2 dots
+The first part is the header, the second part is the payload and the third part is the signature
+The signature is made by using a sign function that works on the header+payload with the help of the signing key. Think of it like this: sign(header+payload, signing_key)
+By using the header + payload, we make the signature different for every user
+The payload essentially refers to any data that is carried by the JWT (usually in the form of a dictionary in Python)
+Also since the signature depends on the header and the payload, if the client changes either of them, the signature will be different which will in turn let the server know that the JWT has been tampered with
+Since the server is the one creating the tokens and validating them, it can put whatever it wants in the payload
+The JWT is also STATELESS since everything is self contained, there is no need to maintain state
+JWTs can be decoded even on the client side to see the payload
+However, since the signature is used to check authentication, it is not too much of a deal
+
+API Keys explained
+
+An API Key will allow a service to access it but it is more often than not NOT STATELESS and has a different structure when compared to the JWT
+Any time a service makes an API request, it must include the API key. The backend will then take the key and check in the database to see what permissions that service has
+Although typically a user is able to generate multiple keys, there are different architectures and a lot of variation when it comes to API keys
+API keys are typically opaque
 
 
 JWT handles stateless authentication. 

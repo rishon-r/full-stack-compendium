@@ -7,7 +7,9 @@ Successful Status codes:
 
 Client Error status codes:
 
-400 BAD REQUEST - Duplicate email/username when creating user
+400 BAD REQUEST - the server cannot or will not process a request because of a client-side error
+401 UNAUTHORIZED -You are not authenticated. The server doesn't know who you are, or your login attempt failed
+403 FORBIDDEN- You are authenticated, but you do not have permission to access the specific resource
 404 NOT FOUND - resource doesn't exist
 422 UNPROCESSABLE ENTITY - Validation Error
 
