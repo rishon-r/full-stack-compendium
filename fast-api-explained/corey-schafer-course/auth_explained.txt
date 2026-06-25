@@ -67,7 +67,6 @@ Any time a service makes an API request, it must include the API key. The backen
 Although typically a user is able to generate multiple keys, there are different architectures and a lot of variation when it comes to API keys
 API keys are typically opaque
 
-
 JWT handles stateless authentication. 
 It acts as a tamper-proof digital ID badge that the client shows to the server on every request, 
 proving who they are without forcing the server to remember them or check a database session table every single time.
@@ -75,3 +74,51 @@ proving who they are without forcing the server to remember them or check a data
 HTTPS handles encryption in transit.
 It creates a secure tunnel so that eavesdroppers on the network cannot read the data (like passwords or tokens)
 being sent back and forth.
+
+OAuth 2.0 explained
+
+OAuth2 is a framework that lets one application get limited access to your data on another service, without ever handing over your password. 
+It's the protocol behind "Sign in with Google" buttons and behind apps that say "allow this app to access your Google Calendar."
+
+The problem it solves:
+Imagine a scheduling app wants to read your Google Calendar. The old, bad way would be to give the scheduling app your Google username and password. 
+That's risky: the app now has full access to your account forever, and you have no easy way to revoke just that one app without changing your password everywhere.
+
+OAuth2 fixes this by introducing tokens: temporary, limited-scope credentials that grant specific permissions ("read calendar events") rather than full account access.
+The key players
+
+Resource Owner — you, the user who owns the data.
+Client — the app requesting access (the scheduling app).
+Authorization Server — the service that authenticates you and issues tokens (Google's login system).
+Resource Server — the API that actually holds your data (Google Calendar's API).
+
+How it typically works (Authorization Code flow)
+
+You click "Connect Google Calendar" in the scheduling app.
+The app redirects you to Google's login page, along with a request specifying what it wants (e.g., "read-only calendar access").
+You log in to Google (the scheduling app never sees your password) and approve the requested permissions.
+Google redirects you back to the scheduling app with a short-lived authorization code.
+The scheduling app exchanges that code, behind the scenes, for an access token (and often a refresh token).
+The app uses the access token to call Google's Calendar API on your behalf.
+
+Access tokens vs. refresh tokens
+Access tokens are short-lived (often minutes to hours) and are what's actually sent with API requests.
+ efresh tokens last longer and let the app silently get a new access token once the old one expires, without bothering you to log in again.
+
+Scopes
+Scopes define exactly what's being granted — "read your email," "post on your behalf," "view your calendar." This is what you see on the consent screen
+ ("This app wants to: view your basic profile info"). Granular scopes mean you're not handing over more than necessary.
+
+Why it matters
+
+Your password never touches the third-party app.
+Access can be limited to specific actions (read-only, for instance).
+You can revoke access to one app at a time from your account settings, without affecting others.
+Tokens expire, limiting damage if one is ever leaked.
+
+A common point of confusion
+OAuth2 is about authorization (what an app can do), not authentication (proving who you are).
+"Sign in with Google" actually layers a separate identity protocol called OpenID Connect on top of OAuth2 to handle the login/identity part — 
+OAuth2 alone doesn't tell the app who you are, just what it's allowed to access.
+
+In short: OAuth2 is a standardized way for you to grant an app limited, revocable access to your data on another service, using tokens instead of your actual credentials.

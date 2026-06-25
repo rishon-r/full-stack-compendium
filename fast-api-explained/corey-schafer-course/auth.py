@@ -1,7 +1,7 @@
 from datetime import UTC, datetime, timedelta
 import jwt
 from fastapi.security import OAuth2PasswordBearer
-from pwdlib import PasswordHash
+from pwdlib import PasswordHash # PasswordHash.recommended() gives us the password hash object - tow functiontions .hash() and .verify()
 from config import settings
 from typing import Annotated
 from fastapi import Depends, HTTPException, status
@@ -12,17 +12,23 @@ from database import get_db
 
 password_hash  = PasswordHash.recommended() # Creates a password hash with argon2 using the recommended settings
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/token") # OAuth2passwordBearer extracts the token from the authorization header
-# When a client sends the token in authorization header, the schema extracts it for us
-# This also enables the authorize button for us in our docs which makes testing authentication a lot easier
+# This line sets up FastAPI's OAuth2PasswordBearer security scheme, which expects clients to send a bearer token in the Authorization header (e.g., Authorization: Bearer <token>).
+# The tokenUrl="/api/users/token" tells FastAPI's auto-generated docs (Swagger UI) where clients should go to obtain a token — it doesn't fetch tokens itself.
+# When used as a dependency in your routes, it automatically extracts the token from incoming requests and raises a 401 if missing. It also adds an "Authorize" button in your /docs page, letting you log in once and test protected endpoints without manually adding headers each time
+# after a JWT is assigned, it is typically sent back with every client request especially at protected routes
+# if a route's function Depends(oauth2_scheme), all this does is ensures that the function extracts the token from the appropriate request header
+# It is not involved in token creation which happens at log in
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/token") 
 
 def hash_password(password:str) -> str:
   # Takes in a plaintext password and returns the hash
+  # Used in users.py when users register to obtain a the hashed version of their password to store in the database
+  # We never store plaintext passwords in a database as this is a security concern, hashed passwords are the only ones store
   return password_hash.hash(password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
   # Takes a plain password and a hashed password and returns True if they match (otherwise returns False)
-
+  # This is used when users log in, in order to check if the plaintext password they enter matches the hashed password
   return password_hash.verify(plain_password, hashed_password)
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str: # Function takes a data dictionary and optional expire time in time_delat format
@@ -39,7 +45,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
         )
     to_encode.update({"exp": expire}) # Adds an "exp" key to the copied dictionary, set to the calculated expiration datetime. "exp" is a standard JWT claim name that libraries use to know when a token expires
 
-    encoded_jwt = jwt.encode( 
+    encoded_jwt = jwt.encode( # Pass payload, secret_key and algorithm
         to_encode, # This is the payload: your data + expiration. "Payload" refers to the actual data being carried/transmitted by something, as opposed to the overhead, headers, or metadata wrapped around it
         settings.secret_key.get_secret_value(), # the secret key used to sign the token, retrieved from a settings object (the .get_secret_value() suggests it's wrapped in something like Pydantic's SecretStr to avoid accidentally logging/printing the raw secret).
         algorithm=settings.algorithm, # the signing algorithm to use

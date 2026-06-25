@@ -127,7 +127,8 @@ async def get_current_user(current_user: CurrentUser):
 
 @router.get("/{user_id}", response_model=UserPublic)
 async def get_user(user_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
-
+  # This is to generally view another user's page. That's why the response model is UserPublic as well
+  # And it does not require token authenitication
   result = await db.execute(select(models.User).where(models.User.id== user_id))
   existing_user = result.scalars().first()
 
