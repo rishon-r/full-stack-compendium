@@ -211,8 +211,7 @@ async def update_user(
         user.username = user_update.username
     if user_update.email is not None:
         user.email = user_update.email.lower()
-    if user_update.image_file is not None:
-        user.image_file = user_update.image_file
+    
 
     await db.commit()
     await db.refresh(user)
@@ -236,9 +235,14 @@ async def delete_user(user_id: int, current_user: CurrentUser, db: Annotated[Asy
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
+    
+    old_filename = user.image_file
 
     await db.delete(user) # delete operation needs to interact with the session in a manner that needs await
     await db.commit()
+
+    if old_filename:
+        delete_profile_image(old_filename) # Removing orphan files as we don't want files pertaining to a particular to linger after that user is deleted
 
 
 # Deals with profile picture uploads
