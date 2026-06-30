@@ -1,0 +1,11 @@
+This section discusses all the key things we need to do to handle image uploads
+
+First of all we need to install pillow: pip install pillow
+
+Pillow is the standard Python Imaging Library. Pillow allows us to do things like resize images, convert formats, etc.
+
+For file uploads to work in python, you also need python multi-part but this is usually already installed after 
+doing a standard fastapi install
+
+Image upload implementations are in image_utils.py
+

@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile
 from sqlalchemy import select, func # func is used to run case insensitive queries
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -14,6 +14,10 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from auth import create_access_token, hash_password, verify_password, CurrentUser
 from config import settings
+
+from PIL import UnidentifiedImageError
+from starlette.concurrency import run_in_threadpool # Used for the CPU bound task of image processing
+from image_utils import process_profile_image, delete_profile_image
 
 router = APIRouter()
 
@@ -235,3 +239,124 @@ async def delete_user(user_id: int, current_user: CurrentUser, db: Annotated[Asy
 
     await db.delete(user) # delete operation needs to interact with the session in a manner that needs await
     await db.commit()
+
+
+# Deals with profile picture uploads
+# Register this endpoint as a PATCH request on /{user_id}/picture.
+# response_model=UserPrivate tells FastAPI to serialize the returned object
+# using the UserPrivate schema (controls which fields are exposed in the response).
+# We use patch because we are updating an existing resource
+@router.patch("/{user_id}/picture", response_model=UserPrivate)
+async def upload_profile_picture(
+    # user_id is parsed from the URL path, e.g. /42/picture -> user_id=42
+    user_id: int,
+
+    # file is the uploaded file, parsed from multipart/form-data by FastAPI.
+    # UploadFile is memory-efficient: it streams to disk if the file is large,
+    # rather than loading everything into RAM immediately.
+    file: UploadFile,
+
+    # current_user is a custom dependency type (CurrentUser) that
+    # extracts/validates the authenticated user from the request (e.g. via a
+    # JWT token), so you know who is making the request.
+    current_user: CurrentUser,
+
+    # db is an async database session, injected via FastAPI's dependency
+    # injection system (Depends). get_db  yields a session tied
+    # to this request's lifecycle.
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    # Authorization check: only allow a user to update their OWN profile picture.
+    # Without this, any logged-in user could overwrite someone else's picture
+    # just by passing a different user_id in the URL.
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to update this user's picture",
+        )
+
+    # Read the entire uploaded file into memory as raw bytes.
+    # "await" is needed because UploadFile.read() is an async operation
+    # (it may be reading from disk/network under the hood).
+    content = await file.read()
+
+    # Reject the upload if it exceeds the configured maximum size.
+    # This protects the server from abuse (e.g. someone uploading a huge file
+    # to exhaust disk/memory/bandwidth).
+    if len(content) > settings.max_upload_size_bytes:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            # Convert bytes to MB for a human-readable error message.
+            detail=f"File too large. Maximum size is {settings.max_upload_size_bytes // (1024 * 1024)}MB",
+        )
+
+    try:
+        # process_profile_image() (defined in image_utiles) is a synchronous, CPU-bound
+        # function (image decoding/resizing/saving), which would normally block
+        # the async event loop and freeze the whole server for other requests.
+        # run_in_threadpool() runs it in a separate worker thread instead, so
+        # the event loop stays free to handle other requests while this runs.
+        new_filename = await run_in_threadpool(process_profile_image, content)
+    except UnidentifiedImageError as err:
+        # PIL raises UnidentifiedImageError if the uploaded bytes aren't a
+        # recognizable image format at all (e.g. someone uploaded a .txt file
+        # renamed to .jpg). Catch it and turn it into a clean 400 error
+        # instead of a raw 500 server error.
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid image file. Please upload a valid image (JPEG, PNG, GIF, WebP).",
+        ) from err  # "from err" preserves the original exception as the cause, for debugging/logging
+
+    # Keep track of the user's previous picture filename so it can be deleted
+    # later, after the new one is successfully saved in the database.
+    old_filename = current_user.image_file
+
+    # Update the user's record in memory with the new filename.
+    current_user.image_file = new_filename
+
+    # Persist the change to the database.
+    await db.commit()
+
+    # Refresh the current_user object with the latest data from the database
+    # (e.g. to pick up any DB-generated values like updated timestamps).
+    await db.refresh(current_user)
+
+    # Only now that the DB update has succeeded, delete the old picture file
+    # from disk. Doing this last avoids a situation where the old file is
+    # deleted but the DB update then fails, leaving the user with no picture
+    # referenced at all.
+    if old_filename:
+        delete_profile_image(old_filename)
+
+    # FastAPI will serialize this returned user object according to the
+    # UserPrivate response_model declared in the decorator.
+    return current_user
+
+# Uses the same pattern as upload_profile_pic function, so I've cut out verbose explanation
+@router.delete("/{user_id}/picture", response_model=UserPrivate)
+async def delete_user_picture(
+    user_id: int,
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to delete this user's picture",
+        )
+
+    old_filename = current_user.image_file
+
+    if old_filename is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No profile picture to delete",
+        )
+
+    current_user.image_file = None
+    await db.commit()
+    await db.refresh(current_user)
+
+    delete_profile_image(old_filename)
+
+    return current_user
