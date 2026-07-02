@@ -20,6 +20,8 @@ class Settings(BaseSettings): # Settings class inherits from BaseSettings which 
   algorithm: str = "HS256" # HS256 is the standard algorithm for JSON Web Tokens
   access_token_expires_minutes: int = 30 # In 30 minutes the access token will expire
 
-  max_upload_size_butes: int = 5 * 1024 * 1024 # 5MB is the maximum upload size
+  max_upload_size_bytes: int = 5 * 1024 * 1024 # 5MB is the maximum upload size
+
+  posts_per_page: int = 10
 
 settings = Settings() # This loads everything from the .env file when the model is imported

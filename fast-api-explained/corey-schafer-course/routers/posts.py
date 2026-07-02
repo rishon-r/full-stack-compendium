@@ -1,27 +1,45 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 import models
 from database import get_db
-from schemas import PostCreate, PostResponse, PostUpdate # Importing our Pydantic schemas that we will ad as response_models to our route decorators
+from schemas import PostCreate, PostResponse, PostUpdate, PaginatedPostsResponse # Importing our Pydantic schemas that we will ad as response_models to our route decorators
 
 from auth import CurrentUser
 
 router = APIRouter()
 
-@router.get("", response_model=list[PostResponse]) # Adding a response model will make fastapi automatically validate the data to ensure it matches the type mentioned
-async def get_posts(db: Annotated[AsyncSession, Depends(get_db)]):
+@router.get("", response_model=PaginatedPostsResponse) # Adding a response model will make fastapi automatically validate the data to ensure it matches the type mentioned
+async def get_posts(db: Annotated[AsyncSession, Depends(get_db)], skip: Annotated[int, Query(ge=0)] = 0, limit: Annotated[int, Query(ge=1, le=100)] = 10):
+    # Above, ge means greater than or equal to zero & le means less than or equal to.
+    # we use Query so that we can add constraints on what the query parameter should be
+
+    # getting a total count of all posts in the database
+    count_result = await db.execute(select(func.count()).select_from(models.Post))
+    total = count_result.scalar() or 0
+
     result = await db.execute(
         select(models.Post)
         .options(selectinload(models.Post.author))
         .order_by(models.Post.date_posted.desc())
+        .offset(skip)
+        .limit(limit)
     )
     posts = result.scalars().all()
-    return posts # fastapi will automatically convert this into a JSON array
+
+    has_more = skip + len(posts) < total
+   
+    return PaginatedPostsResponse(
+        posts=[PostResponse.model_validate(post) for post in posts],
+        total=total,
+        skip=skip,
+        limit=limit,
+        has_more=has_more,
+    )
 
 
 
@@ -37,7 +55,7 @@ async def create_post(post: PostCreate,
     new_post = models.Post(
         title=post.title,
         content=post.content,
-        user_id=current_user.user_id,
+        user_id=current_user.id,
     )
     db.add(new_post)
     await db.commit()
