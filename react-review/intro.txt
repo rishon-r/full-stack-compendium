@@ -1,4 +1,4 @@
-REACT
+REACT - A javascript library for building UIs created by facebook in 2013
 
 (I) THE OLD SCHOOL IMPERATIVE UI APPROACH
 - The key reason react exists is this: keeping what's on screen in sync with your data, as that data changes over time
@@ -36,11 +36,14 @@ State changed -> Components re-run -> Virtual DOM tree created and diff-ed with 
 
 That loop — state change, re-render, diff, apply — repeats every time something happens: a click, a network response, a timer firing
 
-(V) COMPONENTS
+(V) COMPONENT BASED ARCHITECTURE
 - Instead of using ONE LARGE FUNCTION that describes the whole UI, we break the UI into COMPONENTS
-- COMPONENTS refer to small, reusable functions that each own a piece of the tree
+- COMPONENTS refer to small, reusable functions that each own a piece of the tree (Reusability is a big feature here)
 - Components compose like functions compose: bigger UIs are built from smaller ones.
 - This mirrors good software design generally — decompose complexity into small, independently understandable pieces.
+- Another powerful feature of components is that they can be nested. Your entire Ui is essentiallly a root component with
+nested subcomponents that may have further nested sub components inside them
+- Components eventually end up nested in a tree like structure called component hierarchy
 
 (VI) PROPS and STATE: WHERE DATA LIVES
 
@@ -76,3 +79,5 @@ The whole system rests on one idea, with everything else as a consequence of mak
 describe your UI as a function of state, and let the library handle turning changes in that state into efficient,
 correct updates to the screen. Components give you composition, props/state give you controlled data flow, JSX gives you readable syntax,
 and hooks give your functions memory — all in service of keeping "what state says" and "what's on screen" reliably in sync.
+
+NOTE: React is a library not a framework. Libraries are more flexible than framework
