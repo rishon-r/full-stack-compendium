@@ -132,7 +132,7 @@ console.log(a,b,c); // a gets the first element, b gets the second element, c ge
 // break & continue
 // break and continue are two important control flow statements in JavaScript, especially when working with loops.
 // break is used to immediately stop a loop, the control jumps outside the loop
-// continue spiks one iteration, but keeps looping
+// continue spikes one iteration, but keeps looping
 // continue skips the current loop iteration and moces directly to the next one
 // Example of break: (below code prints numbers from 0 to 4)
 for (let i = 0; i < 10; i++) {
