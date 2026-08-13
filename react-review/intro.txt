@@ -1,0 +1,78 @@
+REACT
+
+(I) THE OLD SCHOOL IMPERATIVE UI APPROACH
+- The key reason react exists is this: keeping what's on screen in sync with your data, as that data changes over time
+- Before react, designing UI involved updating the DOM imperatively: you would write code that directly manipulates the DOM
+- This works fine for small things.
+- But as an app grows, every place your data can change needs matching code that updates every affected part of the DOM. 
+- The number of "if this changes, remember to update that" relationships grows combinatorially
+
+(II) REACT'S DECLARATIVE UI APPROACH
+- React proposes a different way to do this: What if we treat the UI as a function of the STATE
+- STATE essentially means the stored data that a program or app remembers at a particular point in time
+- So essentially we are treating the UI as function of the data we have currently
+- When the data changes, you don't touch the DOM yourself — 
+you just call the function again with the new data, and React figures out what actually needs to change
+- This is called declarative UI (describe the end state) as opposed to imperative UI (describe the steps to get there)
+
+(III) THE MAIN DRAWBACK OF A DECLARATIVE APPROACH: EFFICIENCY
+- There is one key problem with letting the UI be a function of the data though: EFFICIENCY
+- Because if the UI is based on state, and we re render everything everytime the state changes, this would be far too slow
+- This is becayse we are rebuilding the entire DOM on every change and DOM operations are expensive
+
+(IV) REACT'S SOLUTION FOR THIS: THE VIRTUAL DOM
+- React's solution is the Virtual DOM
+- The virtual DOM is a lightweight JavaScript representation of what the DOM should look like
+- When the state changes:
+    (i) React calls your component functions again, producing a new virtual DOM tree.
+    (ii) React compares this new tree against the previous tree (diff)
+    (iii) React then computes the minimal set of real DOM changes needed and only applies those (reconciliation)
+- This lets you handle the declarative aspects of the UI building (just describe the UI) while React handles the imperative,
+efficient DOM updates behind the scenes
+
+So the process is as follows:
+
+State changed -> Components re-run -> Virtual DOM tree created and diff-ed with previous one -> Minimal set of real DOM updates implemented behind the scenes by React
+
+That loop — state change, re-render, diff, apply — repeats every time something happens: a click, a network response, a timer firing
+
+(V) COMPONENTS
+- Instead of using ONE LARGE FUNCTION that describes the whole UI, we break the UI into COMPONENTS
+- COMPONENTS refer to small, reusable functions that each own a piece of the tree
+- Components compose like functions compose: bigger UIs are built from smaller ones.
+- This mirrors good software design generally — decompose complexity into small, independently understandable pieces.
+
+(VI) PROPS and STATE: WHERE DATA LIVES
+
+Two kinds of data flow into a components output:
+
+(i) PROPS: These are data passed in from a parent component, like function arguments. A component cannot change its own props,
+it merely receives them
+
+(ii) STATE - data a component owns and manages itself, that can change over its lifetime (implemented via useState in modern React)
+
+Unidirectional data flow: data flows down through props, and when something needs to change,
+an event flows back up (usually via a callback function passed as a prop) to whoever owns that state. 
+This is deliberate — it makes data flow traceable. In a large app, you can always ask "where does this value come from?" 
+and follow one direction to find out, rather than chasing mutations happening from arbitrary places.
+
+(VII) JSX
+
+- <div>{count}</div> isn't HTML — it's syntactic sugar that compiles to plain function calls: React.createElement('div', null, count)
+- JSX just lets you write the shape of your UI tree in a way that visually resembles the output, instead of nesting function calls by hand
+
+(VIII) HOOKS (GIVING FUNCTIONS MEMORY)
+- Plain JavaScript funnctions do not remember anything between calls
+- But components need to - a counter needs to remember its count across re-renders
+- Hooks such as useState and useEffect are React's mechanism for attaching persistent state and side effects to an otherwise stateless
+function, without needing classes
+- useState gives a component memory.
+- useEffect handles things outside the pure render-a-UI model — fetching data, subscriptions,
+manually touching the DOM — anything that isn't just "compute what the UI looks like.
+
+TLDR:
+
+The whole system rests on one idea, with everything else as a consequence of making it practical:
+describe your UI as a function of state, and let the library handle turning changes in that state into efficient,
+correct updates to the screen. Components give you composition, props/state give you controlled data flow, JSX gives you readable syntax,
+and hooks give your functions memory — all in service of keeping "what state says" and "what's on screen" reliably in sync.
