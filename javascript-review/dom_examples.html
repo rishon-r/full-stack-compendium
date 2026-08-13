@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <p>
+    This is a sample webpage
+  </p>
+  <button class="js-button1" style="background-color: yellow" onclick="clickButton('.js-button1')">
+     Click me
+  </button>
+
+  <button class="js-button2" style="background-color: azure" onclick="clickButton('.js-button2')"> 
+    Click me 
+  </button>
+
+  <button class="js-button3" style="background-color: greenyellow;" onclick="clickButton('.js-button3')"> 
+    Click me 
+  </button>
+
+  <script>
+    function clickButton(buttonClass) {
+      document.querySelector(buttonClass).innerHTML= 'Clicked';
+    }
+ </script>
+</body>
+</html>
