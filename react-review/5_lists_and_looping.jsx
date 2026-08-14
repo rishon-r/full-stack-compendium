@@ -52,3 +52,59 @@ function UserList() {
         </ul>
     )
 }
+
+// DYNAMIC LIST WITH ADD/REMOVE (An example)
+
+import { useState } from "react";
+
+function DynamicList() {
+  const [items, setItems] = useState([
+    { id: 1, text: "Buy groceries" },
+    { id: 2, text: "Walk the dog" },
+    { id: 3, text: "Finish report" },
+  ]);
+  const [inputValue, setInputValue] = useState("");
+
+  function handleAdd() {
+    if (inputValue.trim() === "") return; // ignore empty input
+
+    const newItem = {
+      id: Date.now(), // simple way to get a unique id
+      text: inputValue,
+    };
+
+    // Never mutate state directly (e.g. items.push(newItem)) —
+    // always create a NEW array so React detects the change.
+    setItems([...items, newItem]);
+    setInputValue(""); // clear the input after adding
+  }
+
+  function handleRemove(idToRemove) {
+    // filter() returns a new array, excluding the removed item —
+    // again, never mutate the original array in place.
+    setItems(items.filter((item) => item.id !== idToRemove));
+  }
+
+  return (
+    <div>
+      <input
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        placeholder="Add a new item"
+      />
+      <button onClick={handleAdd}>Add</button>
+
+      <ul>
+        {items.map((item) => (
+          // key={item.id} — stable identity, NOT the array index,
+          // since items can be removed from anywhere in the list.
+          <li key={item.id}>
+            {item.text}
+            <button onClick={() => handleRemove(item.id)}>Remove</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
